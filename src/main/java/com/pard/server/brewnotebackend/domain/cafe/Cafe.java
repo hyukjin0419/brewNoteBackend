@@ -56,6 +56,7 @@ public class Cafe extends BaseEntity {
                 .build();
     }
 
+    // --- Business Logic ---
     public void updateInfo(String name, String address) {
         this.name = name;
         this.address = address;
