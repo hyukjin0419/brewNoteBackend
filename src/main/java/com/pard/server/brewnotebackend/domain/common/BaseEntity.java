@@ -1,4 +1,4 @@
-package com.pard.server.brewnotebackend.domain.member;
+package com.pard.server.brewnotebackend.domain.common;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

@@ -1,6 +1,7 @@
 package com.pard.server.brewnotebackend.domain.member;
 
 
+import com.pard.server.brewnotebackend.domain.common.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -20,7 +21,7 @@ import java.util.UUID;
 @SuperBuilder
 @SQLRestriction("status != 'LEAVE'")
 @SQLDelete(sql = "UPDATE member SET status = 'LEAVE' WHERE member_id = ?")
-public class Member extends BaseEntity{
+public class Member extends BaseEntity {
 
     @Id
     @UuidGenerator(style = UuidGenerator.Style.TIME)
