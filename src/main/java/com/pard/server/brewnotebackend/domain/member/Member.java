@@ -19,7 +19,7 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @SuperBuilder
-@SQLRestriction("status != 'LEAVE'")
+@SQLRestriction("status != 'LEAVE'") //조회시 status == LEAVE는 제외하고 가져오기! -> 서비스단에서 따로 해야할까? 아니면 이렇게 하띾?
 @SQLDelete(sql = "UPDATE member SET status = 'LEAVE' WHERE member_id = ?")
 public class Member extends BaseEntity {
 
