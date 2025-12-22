@@ -19,6 +19,8 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @SuperBuilder
+//MVP 단계에서는 LEAVE 멤버 자동 제외.
+//관리자/통계 기능 생기면 제거 예정
 @SQLRestriction("status != 'LEAVE'") //조회시 status == LEAVE는 제외하고 가져오기! -> 서비스단에서 따로 해야할까? 아니면 이렇게 하띾?
 @SQLDelete(sql = "UPDATE member SET status = 'LEAVE' WHERE member_id = ?")
 public class Member extends BaseEntity {
@@ -36,15 +38,16 @@ public class Member extends BaseEntity {
     private UUID cafeId;
 
     // --- 로그인 & 개인 정보 ---
-    @Column(nullable = false, unique = true)
-    private String username;
+    @Column(nullable = true, unique = true)
+    private String email; //Todo 이메일로 변경
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String password;
 
     @Column(nullable = false)
     private String name; //실명
 
+    @Column(nullable = true)
     private String nickname;
 
     // --- 상태 & 권한 ---
@@ -57,10 +60,11 @@ public class Member extends BaseEntity {
     private MemberStatus status; // ACTIVE, LEAVE -> soft deletion
 
     // --- Static Factory Method ---
-    public static Member of(
+    // OWNER 계정 생성
+    public static Member createActive(
             UUID franchiseId,
             UUID cafeId,
-            String username,
+            String email,
             String password,
             String name,
             String nickname,
@@ -69,7 +73,7 @@ public class Member extends BaseEntity {
         return Member.builder()
                 .franchiseId(franchiseId)
                 .cafeId(cafeId)
-                .username(username)
+                .email(email)
                 .password(password)
                 .name(name)
                 .nickname(nickname)
@@ -77,6 +81,29 @@ public class Member extends BaseEntity {
                 .status(MemberStatus.ACTIVE)
                 .build();
     };
+
+    // STAFF 계청 생성 -> 이후 초대
+    public static Member inviteStaff(UUID franchiseId, UUID cafeId) {
+        return Member.builder()
+                .franchiseId(franchiseId)
+                .cafeId(cafeId)
+                .role(RoleType.STAFF)
+                .status(MemberStatus.PENDING)
+                .build();
+    }
+
+    //Staff 활성화 시키기
+    public void activate(String email, String password, String name, String nickname) {
+        if (this.status != MemberStatus.PENDING) {
+            throw new IllegalStateException("이미 활성화된 계정입니다.");
+        }
+        this.email = email;
+        this.password = password;
+        this.name = name;
+        this.nickname = nickname;
+        this.status = MemberStatus.ACTIVE;
+    }
+
 
     // --- Business Logic ---
     public void updateInfo(String nickname){
