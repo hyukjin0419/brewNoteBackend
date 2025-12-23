@@ -39,7 +39,7 @@ public class Member extends BaseEntity {
 
     // --- 로그인 & 개인 정보 ---
     @Column(nullable = true, unique = true)
-    private String email; //Todo 이메일로 변경
+    private String email;
 
     @Column(nullable = true)
     private String password;
@@ -49,6 +49,7 @@ public class Member extends BaseEntity {
 
     @Column(nullable = true)
     private String nickname;
+    //TODO 사진, 전화번호 추가
 
     // --- 상태 & 권한 ---
     @Enumerated(EnumType.STRING)
@@ -58,6 +59,12 @@ public class Member extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private MemberStatus status; // ACTIVE, LEAVE -> soft deletion
+
+    //TODO
+    /*
+    - 점주가 매장 여러개 가질 수 있고
+    - 스태프도 매장 여러개 넣을 수 있고
+     */
 
     // --- Static Factory Method ---
     // OWNER 계정 생성

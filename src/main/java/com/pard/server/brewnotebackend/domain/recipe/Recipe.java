@@ -58,6 +58,9 @@ public class Recipe extends BaseEntity {
     private boolean isSignature = false;
 
     @Builder.Default
+    private boolean isNew = false;
+
+    @Builder.Default
     private boolean isHidden = false; //Soft Delete 용
 
     // --- 자식들 (Cascade) ---

@@ -33,6 +33,7 @@ public class Cafe extends BaseEntity {
     @Column(nullable = false)
     private String address;
 
+    //MVP에서는 제외...? -> 설계상 이메일 발송으로 대체할 듯?
     @Column(unique = true)
     private String accessCode; //알바생 공용 코드 -> 알바생 직접 가입시 사용
 
