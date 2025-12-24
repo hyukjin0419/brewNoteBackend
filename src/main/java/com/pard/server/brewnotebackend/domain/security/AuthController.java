@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Auth", description = "로그인/회원가입 관련 API")
+@Tag(name = "Auth", description = "로그인 관련 API")
 @Slf4j
 @RestController
 @RequestMapping("api/auth")
@@ -25,4 +25,8 @@ POST /auth/signup        // ADMIN / OWNER
 POST /auth/login
 POST /auth/activate      // STAFF
 POST /auth/change-password
+
+/admin/owners     → admin만 가능
+/owners/staff     → owner만 가능
+
  */
