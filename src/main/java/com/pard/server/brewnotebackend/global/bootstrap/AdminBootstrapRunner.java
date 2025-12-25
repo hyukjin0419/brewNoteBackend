@@ -21,5 +21,6 @@ public class AdminBootstrapRunner implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) throws Exception {
         adminBootstrapService.initAdminIfNotExists(adminEmail, adminPassword);
+        adminBootstrapService.initEdiyaFranchise();
     }
 }

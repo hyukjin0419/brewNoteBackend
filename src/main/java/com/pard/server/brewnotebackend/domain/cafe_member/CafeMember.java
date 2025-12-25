@@ -36,17 +36,15 @@ public class CafeMember extends BaseEntity {
     @Column(nullable = false)
     private CafeMemberStatus status; //PENDING, ACTIVATED, LEAVE
 
-    public static CafeMember createOwner(
+    public static CafeMember createCafeOwner(
             UUID cafeId,
-            UUID memberId,
-            CafeMemberRoleType role,
-            CafeMemberStatus status
+            UUID memberId
     ) {
         return CafeMember.builder()
                 .cafeId(cafeId)
                 .memberId(memberId)
                 .role(CafeMemberRoleType.OWNER)
-                .status(CafeMemberStatus.ACTIVATED)
+                .status(CafeMemberStatus.PENDING)
                 .build();
     }
 

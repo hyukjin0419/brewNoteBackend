@@ -34,12 +34,10 @@ public class Franchise extends BaseEntity {
     private String description;
 
     public static Franchise of(
-            String name, String logoUrl, String description
+            String name
     ) {
         return Franchise.builder()
                 .name(name)
-                .logoUrl(logoUrl)
-                .description(description)
                 .build();
     }
 

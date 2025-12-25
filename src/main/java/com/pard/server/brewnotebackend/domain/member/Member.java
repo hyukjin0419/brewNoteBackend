@@ -49,7 +49,6 @@ public class Member extends BaseEntity {
     @Column(nullable = true)
     private String profileImgUrl;
 
-
     // --- 상태 & 권한 ---
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -57,7 +56,7 @@ public class Member extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MemberStatus status; // ACTIVE, LEAVE -> soft deletion
+    private MemberStatus status; // ACTIVE, INACTIVE
 
     //TODO
     /*

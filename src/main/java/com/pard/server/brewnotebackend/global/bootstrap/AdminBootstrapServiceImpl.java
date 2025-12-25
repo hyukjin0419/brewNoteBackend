@@ -1,5 +1,7 @@
 package com.pard.server.brewnotebackend.global.bootstrap;
 
+import com.pard.server.brewnotebackend.domain.francise.Franchise;
+import com.pard.server.brewnotebackend.domain.francise.FranchiseRepository;
 import com.pard.server.brewnotebackend.domain.member.Member;
 import com.pard.server.brewnotebackend.domain.member.MemberRepository;
 import com.pard.server.brewnotebackend.domain.member.MemberRoleType;
@@ -10,13 +12,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AdminBootstrapServiceImpl implements AdminBootstrapService {
 
     private final MemberRepository memberRepository;
+    private final FranchiseRepository franchiseRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    @Transactional
     public void initAdminIfNotExists(String adminEmail, String adminPassword) {
 
         if(memberRepository.existsByRole(MemberRoleType.ADMIN)) return;
@@ -30,5 +33,12 @@ public class AdminBootstrapServiceImpl implements AdminBootstrapService {
         );
 
         memberRepository.save(admin);
+    }
+
+    @Override
+    public void initEdiyaFranchise() {
+        Franchise ediya = Franchise.of("이디야");
+
+        franchiseRepository.save(ediya);
     }
 }
