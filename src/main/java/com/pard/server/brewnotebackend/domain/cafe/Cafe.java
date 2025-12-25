@@ -33,10 +33,6 @@ public class Cafe extends BaseEntity {
     @Column(nullable = false)
     private String address;
 
-    //MVP에서는 제외...? -> 설계상 이메일 발송으로 대체할 듯?
-    @Column(unique = true)
-    private String accessCode; //알바생 공용 코드 -> 알바생 직접 가입시 사용
-
     //운영
     @Builder.Default
     @Enumerated(EnumType.STRING)
@@ -45,32 +41,27 @@ public class Cafe extends BaseEntity {
     public static Cafe of (
             UUID franchiseId,
             String name,
-            String address,
-            String accessCode
+            String address
     ) {
         return Cafe.builder()
                 .franchiseId(franchiseId)
                 .name(name)
                 .address(address)
-                .accessCode(accessCode)
                 .status(CafeStatus.ACTIVE)
                 .build();
     }
 
-    // --- Business Logic ---
-    public void updateInfo(String name, String address) {
-        this.name = name;
-        this.address = address;
-    }
 
-    // 간편 로그인 코드 변경
-    public void updateAccessCode(String newCode) {
-        this.accessCode = newCode;
-    }
-
-    // 폐업/삭제 처리 (Soft Delete가 적용되지만 명시적 메서드로도 제공)
-    public void closeCafe() {
-        this.status = CafeStatus.CLOSED;
-    }
+    // 비지니스 로직은 필요할 때 제대로 작성!
+//    // --- Business Logic ---
+//    public void updateInfo(String name, String address) {
+//        this.name = name;
+//        this.address = address;
+//    }
+//
+//    // 폐업/삭제 처리 (Soft Delete가 적용되지만 명시적 메서드로도 제공)
+//    public void closeCafe() {
+//        this.status = CafeStatus.CLOSED;
+//    }
 
 }

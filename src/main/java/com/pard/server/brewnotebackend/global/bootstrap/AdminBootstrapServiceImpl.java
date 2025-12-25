@@ -2,9 +2,8 @@ package com.pard.server.brewnotebackend.global.bootstrap;
 
 import com.pard.server.brewnotebackend.domain.member.Member;
 import com.pard.server.brewnotebackend.domain.member.MemberRepository;
-import com.pard.server.brewnotebackend.domain.member.RoleType;
+import com.pard.server.brewnotebackend.domain.member.MemberRoleType;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,16 +19,14 @@ public class AdminBootstrapServiceImpl implements AdminBootstrapService {
     @Transactional
     public void initAdminIfNotExists(String adminEmail, String adminPassword) {
 
-        if(memberRepository.existsByRole(RoleType.ADMIN)) return;
+        if(memberRepository.existsByRole(MemberRoleType.ADMIN)) return;
 
-        Member admin = Member.createActive(
-                null,
-                null,
+        Member admin = Member.of(
                 adminEmail,
                 passwordEncoder.encode(adminPassword),
                 "Admin",
                 "admin",
-                RoleType.ADMIN
+                MemberRoleType.ADMIN
         );
 
         memberRepository.save(admin);
