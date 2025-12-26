@@ -37,7 +37,10 @@ public class AdminBootstrapServiceImpl implements AdminBootstrapService {
 
     @Override
     public void initEdiyaFranchise() {
-        Franchise ediya = Franchise.of("이디야");
+        String name = "이디야";
+        Franchise ediya = Franchise.of(name);
+
+        if(franchiseRepository.existsByName(name)) return;
 
         franchiseRepository.save(ediya);
     }

@@ -8,30 +8,28 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.UUID;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @SuperBuilder
-public class RecipeStep extends BaseEntity {
+public class RecipeOption extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recipe_id")
-    private Recipe recipe;
+    @Column(columnDefinition = "BINARY(16)")
+    private UUID recipeId;
 
-    @Column(nullable = false)
-    private Integer stepOrder; //순서 1,2,3....
-
-    @Column(columnDefinition = "TEXT", nullable = false)
-    private String description;
-
-
-    //양방향 관계 명심!
-    public void setThisRecipe(Recipe recipe) {
-        this.recipe = recipe;
-    }
+    @Column(nullable = false, length = 20)
+    private String optionType; //SIZE, TEMP
+    /*
+    size: large, small
+    temp: hot, ice
+     */
+    @Column(nullable = false, length = 20)
+    private String optionValue;
 }
