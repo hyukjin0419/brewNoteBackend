@@ -4,11 +4,14 @@ import com.pard.server.brewnotebackend.domain.cafe.Cafe;
 import com.pard.server.brewnotebackend.domain.cafe.CafeRepository;
 import com.pard.server.brewnotebackend.domain.cafe_member.CafeMember;
 import com.pard.server.brewnotebackend.domain.cafe_member.CafeMemberRepository;
+import com.pard.server.brewnotebackend.domain.cafe_member.CafeMemberRoleType;
 import com.pard.server.brewnotebackend.global.exception.BusinessException;
 import com.pard.server.brewnotebackend.global.exception.ErrorCode;
 import com.pard.server.brewnotebackend.global.utils.PasswordGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,4 +51,36 @@ public class MemberServiceImpl implements MemberService{
         }
     }
 
+    @Override
+    //TODO MVP 이후 Projection + JOIN으로 바꿔야 함 (쿼리 2번 이상 -> 1번으로 바꿔야 한다)
+    public Page<OwnerDetailResponse> getMemberOwners(Pageable pageable) {
+
+        Page<OwnerDetailResponse> owners = memberRepository.findOwnerDetailsWithRepresentativeCafe(MemberRoleType.USER, CafeMemberRoleType.OWNER, pageable);
+
+        return owners;
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
