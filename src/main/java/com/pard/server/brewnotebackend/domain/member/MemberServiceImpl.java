@@ -55,9 +55,7 @@ public class MemberServiceImpl implements MemberService{
     //TODO MVP 이후 Projection + JOIN으로 바꿔야 함 (쿼리 2번 이상 -> 1번으로 바꿔야 한다)
     public Page<OwnerDetailResponse> getMemberOwners(Pageable pageable) {
 
-        Page<OwnerDetailResponse> owners = memberRepository.findOwnerDetailsWithRepresentativeCafe(MemberRoleType.USER, CafeMemberRoleType.OWNER, pageable);
-
-        return owners;
+        return memberRepository.findOwnerDetailsWithRepresentativeCafe(MemberRoleType.USER, CafeMemberRoleType.OWNER, pageable);
     }
 }
 

@@ -25,12 +25,12 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
         )
         from Member m
         left join CafeMember cm on cm.memberId = m.id
-            and cm.role = :cafeRole
+            and cm.role = :cafeMemberRole
             and cm.id = (
                 select min(cm2.id)
                 from CafeMember cm2
                 where cm2.memberId = m.id
-                and cm2.role = :cafeRole
+                and cm2.role = :cafeMemberRole
             )
         left join Cafe c on cm.cafeId = c.id
         where m.role = :memberRole
