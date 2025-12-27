@@ -1,5 +1,7 @@
 package com.pard.server.brewnotebackend.domain.recipe;
 
+import com.pard.server.brewnotebackend.domain.francise.FranchiseRepository;
+import com.pard.server.brewnotebackend.domain.francise.FranchiseResponse;
 import com.pard.server.brewnotebackend.domain.member.MemberRepository;
 import com.pard.server.brewnotebackend.domain.member.MemberRoleType;
 import com.pard.server.brewnotebackend.global.utils.UuidUtils;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,6 +26,7 @@ public class RecipeServiceImpl implements RecipeService{
     final private RecipeRepository recipeRepository;
     final private RecipeOptionRepository recipeOptionRepository;
     final private RecipeStepRepository recipeStepRepository;
+    final private FranchiseRepository franchiseRepository;
 
     @Override
     public void createRecipe(RecipeCreateRequest request) {
@@ -62,9 +66,51 @@ public class RecipeServiceImpl implements RecipeService{
         }
 
 
-        //그리고 이거를 작성할 수 있는 화면도 만들어줘야 한다 -> 이건 커서가
-        //프론트로 넘겨줄 때 프렌차이즈 + 카테고리 선택할 수 있게 넘겨주어야 한다.
-
 
     }
+    //그리고 이거를 작성할 수 있는 화면도 만들어줘야 한다 -> 이건 커서가
+    //프론트로 넘겨줄 때 프렌차이즈 + 카테고리 선택할 수 있게 넘겨주어야 한다.
+    @Override
+    public RecipeFormDataResponse getFormData() {
+
+        List<RecipeEnumOptionResponse> recipeEnumOptionResponses =
+                Arrays.stream(RecipeCategory.values())
+                        .map(RecipeEnumOptionResponse::fromEnum)
+                        .toList();
+
+        List<FranchiseResponse> franchiseResponses =
+                franchiseRepository.findAll().stream().map(FranchiseResponse::fromEntity).toList();
+
+        return RecipeFormDataResponse.from(recipeEnumOptionResponses, franchiseResponses);
+    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

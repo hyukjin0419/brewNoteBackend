@@ -20,5 +20,9 @@ public enum RecipeCategory {
     SOFT_ICE_CREAM("소프트 아이스크림"),
     BREAD("브레드/베이커리");
 
-    private final String description; // 화면에 보여줄 한글 이름
+    private final String label; // 화면에 보여줄 한글 이름
+
+    public String getKey() {
+        return name(); // COFFEE
+    }
 }

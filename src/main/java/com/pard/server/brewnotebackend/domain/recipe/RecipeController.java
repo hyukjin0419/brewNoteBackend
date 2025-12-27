@@ -4,10 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Recipe", description = "레시피 관련 API")
 @Slf4j
@@ -51,7 +48,16 @@ public class RecipeController {
     recipeOptions
     //프론트에서 Option Value는 일대다로!
     steps -> List로 입력받아서 단방향으로 추가하기 (이때 현재 레시피를 참조)
-
-
     */
+
+    //레시피를 등록하기 전, 미리 받아와야할 form data
+    @GetMapping("/admin/recipes/form-data")
+    //TODO  @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<RecipeFormDataResponse> getRecipeFormData() {
+        return ResponseEntity.ok(recipeService.getFormData());
+    }
+
+
+    //등록된 레시피 전체 조회 (검색 기능 추가해야 함)
+
 }
