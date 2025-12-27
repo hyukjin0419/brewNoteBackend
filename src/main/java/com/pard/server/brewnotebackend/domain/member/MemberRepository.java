@@ -7,11 +7,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public interface MemberRepository extends JpaRepository<Member, UUID> {
     boolean existsByRole(MemberRoleType roleType);
     boolean existsByEmail(String email);
+
+    Optional<Member> findByRole(MemberRoleType roleType);
 
     @Query("""
         select new com.pard.server.brewnotebackend.domain.member.OwnerDetailResponse(

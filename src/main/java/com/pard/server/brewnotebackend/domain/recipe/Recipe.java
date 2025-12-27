@@ -34,9 +34,8 @@ public class Recipe extends BaseEntity {
     private UUID cafeId;
 
     // --- 족보 (Deep Copy 추적) ---
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "original_recipe_id")
-    private Recipe originalRecipe; //내가 베낀 원본 레세피 (비어 있는 경우, 이게 원본 레시피임)
+    @Column(columnDefinition = "BINARY(16)")
+    private UUID originalRecipeId;
 
     @Column(columnDefinition = "BINARY(16)")
     private UUID createdBy; //작성자 ID
@@ -44,9 +43,6 @@ public class Recipe extends BaseEntity {
     // --- 기본 정보 ---
     @Column(nullable = false)
     private String title;
-
-    @Column(columnDefinition = "TEXT")
-    private String description;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -63,12 +59,17 @@ public class Recipe extends BaseEntity {
     @Builder.Default
     private boolean isHidden = false; //Soft Delete 용
 
-    @Builder.Default
-    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RecipeStep> steps = new ArrayList<>();
-
-    public void addStep(RecipeStep step) {
-        this.steps.add(step);
-        step.setThisRecipe(this);
+    public static Recipe of(
+            UUID franchiseId,
+            UUID creatorId,
+            String title,
+            RecipeCategory category
+    ) {
+        return Recipe.builder()
+                .franchiseId(franchiseId)
+                .createdBy(creatorId)
+                .title(title)
+                .category(category)
+                .build();
     }
 }

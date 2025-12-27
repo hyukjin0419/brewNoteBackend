@@ -25,11 +25,15 @@ public class RecipeOption extends BaseEntity {
     private UUID recipeId;
 
     @Column(nullable = false, length = 20)
-    private String optionType; //SIZE, TEMP
-    /*
-    size: large, small
-    temp: hot, ice
-     */
-    @Column(nullable = false, length = 20)
-    private String optionValue;
+    private String optionValue; //SIZE, TEMP
+
+    public static RecipeOption of(
+            UUID recipeId,
+            String optionValue
+    ) {
+        return RecipeOption.builder()
+                .recipeId(recipeId)
+                .optionValue(optionValue)
+                .build();
+    }
 }
