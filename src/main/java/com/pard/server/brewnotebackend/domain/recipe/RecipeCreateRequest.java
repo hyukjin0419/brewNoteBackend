@@ -17,6 +17,7 @@ public class RecipeCreateRequest {
     private String category; //ENUM으로 받아야 하나?
     private List<String> recipeOptions;
     private List<String> steps;
+    private List<String> alias;
 
     /*
     오리지널 레시피 추가 (ADMIN 버전)

@@ -27,6 +27,7 @@ public class RecipeServiceImpl implements RecipeService{
     final private RecipeOptionRepository recipeOptionRepository;
     final private RecipeStepRepository recipeStepRepository;
     final private FranchiseRepository franchiseRepository;
+    final private RecipeAliasRepository recipeAliasRepository;
 
     @Override
     public void createRecipe(RecipeCreateRequest request) {
@@ -65,9 +66,16 @@ public class RecipeServiceImpl implements RecipeService{
             recipeStepRepository.saveAll(steps);
         }
 
+        List<String> aliasRequest = request.getAlias();
+        if (aliasRequest != null && !aliasRequest.isEmpty()) {
+            List<RecipeAlias> aliases = aliasRequest.stream()
+                    .map(RecipeAlias::of)
+                    .toList();
 
-
+            recipeAliasRepository.saveAll(aliases);
+        }
     }
+
     //그리고 이거를 작성할 수 있는 화면도 만들어줘야 한다 -> 이건 커서가
     //프론트로 넘겨줄 때 프렌차이즈 + 카테고리 선택할 수 있게 넘겨주어야 한다.
     @Override
@@ -80,7 +88,6 @@ public class RecipeServiceImpl implements RecipeService{
 
         List<FranchiseResponse> franchiseResponses =
                 franchiseRepository.findAll().stream().map(FranchiseResponse::fromEntity).toList();
-
         return RecipeFormDataResponse.from(recipeEnumOptionResponses, franchiseResponses);
     }
 }
