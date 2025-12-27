@@ -62,9 +62,9 @@ public class RecipeServiceImpl implements RecipeService{
         }
 
 
+        //그리고 이거를 작성할 수 있는 화면도 만들어줘야 한다 -> 이건 커서가
+        //프론트로 넘겨줄 때 프렌차이즈 + 카테고리 선택할 수 있게 넘겨주어야 한다.
 
-        //recipeOptions -> 저장하기
-        //recipeSteps -> 저장하기
 
     }
 }
