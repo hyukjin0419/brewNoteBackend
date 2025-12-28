@@ -4,6 +4,8 @@ import com.pard.server.brewnotebackend.domain.francise.FranchiseRepository;
 import com.pard.server.brewnotebackend.domain.francise.FranchiseResponse;
 import com.pard.server.brewnotebackend.domain.member.MemberRepository;
 import com.pard.server.brewnotebackend.domain.member.MemberRoleType;
+import com.pard.server.brewnotebackend.global.exception.BusinessException;
+import com.pard.server.brewnotebackend.global.exception.ErrorCode;
 import com.pard.server.brewnotebackend.global.utils.UuidUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,12 +23,12 @@ import java.util.*;
 @Slf4j
 public class RecipeServiceImpl implements RecipeService{
 
-    final private MemberRepository memberRepository;
-    final private RecipeRepository recipeRepository;
-    final private RecipeOptionRepository recipeOptionRepository;
-    final private RecipeStepRepository recipeStepRepository;
-    final private FranchiseRepository franchiseRepository;
-    final private RecipeAliasRepository recipeAliasRepository;
+    private final MemberRepository memberRepository;
+    private final RecipeRepository recipeRepository;
+    private final RecipeOptionRepository recipeOptionRepository;
+    private final RecipeStepRepository recipeStepRepository;
+    private final FranchiseRepository franchiseRepository;
+    private final RecipeAliasRepository recipeAliasRepository;
 
     @Override
     public void createRecipe(RecipeCreateRequest request) {
@@ -33,6 +36,13 @@ public class RecipeServiceImpl implements RecipeService{
         //TODO 나중에 파라미터로 받와야하 함!, @CurrentUser 사용하기:)
         UUID creatorId = memberRepository.findByRole(MemberRoleType.ADMIN)
                 .orElseThrow(() -> new EntityNotFoundException("ADMIN을 찾을 수 없습니다.")).getId();
+
+        if (recipeRepository.existsByTitleAndFranchiseId(request.getTitle().trim(), franchiseId)) {
+            log.warn("이미 해당 프랜차이즈에 동일한 이름의 레시피가 존재합니다: {}", request.getTitle());
+            throw new BusinessException(ErrorCode.DUPLICATED_RECIPE);
+        }
+
+        log.warn("검색 조건 -> title: [{}], franchiseId: [{}]", request.getTitle(), franchiseId);
 
         Recipe recipe = Recipe.of(franchiseId, creatorId, request.getTitle(), RecipeCategory.valueOf(request.getCategory()));
 
@@ -67,7 +77,10 @@ public class RecipeServiceImpl implements RecipeService{
         List<String> aliasRequest = request.getAlias();
         if (aliasRequest != null && !aliasRequest.isEmpty()) {
             List<RecipeAlias> aliases = aliasRequest.stream()
-                    .map(RecipeAlias::of)
+                    .map(alias -> RecipeAlias.of(
+                            recipe.getId(),
+                            alias
+                    ))
                     .toList();
 
             recipeAliasRepository.saveAll(aliases);
@@ -106,8 +119,29 @@ public class RecipeServiceImpl implements RecipeService{
                 PageRequest.of(0,CANDIDATE_LIMIT)
         );
 
+        List<UUID> recipeIds = candidates.stream()
+                .map(Recipe::getId)
+                .toList();
+
+        Map<UUID, List<RecipeAlias>> aliasMap =
+                recipeAliasRepository.findByRecipeIdIn(recipeIds).stream()
+                        .collect(Collectors.groupingBy(RecipeAlias::getRecipeId));
+
+        aliasMap.forEach((recipeId, aliases) -> {
+            System.out.println("---------------------------------");
+            System.out.println("레시피 ID: " + recipeId);
+            System.out.print("등록된 별칭들: ");
+
+            // 별칭 객체에서 이름만 추출해서 출력
+            List<String> aliasNames = aliases.stream()
+                    .map(RecipeAlias::getAlias) // 혹은 getName() 등 필드명에 맞게 수정
+                    .toList();
+
+            System.out.println(aliasNames);
+        });
+
         List<ScoredRecipe> scored = candidates.stream()
-                .map(recipe -> matchAndScore(recipe, token))
+                .map(recipe -> matchAndScore(recipe, token, aliasMap.getOrDefault(recipe.getId(), List.of())))
                 .filter(ScoredRecipe::isMatched)
                 .toList();
 
@@ -118,7 +152,8 @@ public class RecipeServiceImpl implements RecipeService{
                 .toList();
     }
 
-    private ScoredRecipe matchAndScore(Recipe recipe, RecipeSearchToken token) {
+    private ScoredRecipe matchAndScore(Recipe recipe, RecipeSearchToken token, List<RecipeAlias> aliases) {
+        if (recipe.getTitle() == null) return ScoredRecipe.notMatched();
 
         int score = 0;
 
@@ -126,13 +161,29 @@ public class RecipeServiceImpl implements RecipeService{
         String hangulPrefix = token.getHangulPrefix();
         String inputInitials = token.getInitialSequence();
 
+        // --- title 기준 ---
         if (recipe.getTitle().equals(raw)) score += 100;
 
         if(!hangulPrefix.isEmpty() && recipe.getTitle().startsWith(hangulPrefix)) score += 90;
 
-        if(!recipe.getTitleInitial().startsWith(inputInitials)) return ScoredRecipe.notMatched();
+        boolean titleInitialMatched = recipe.getTitleInitial().startsWith(inputInitials);
 
-        score += 70;
+        if(titleInitialMatched) score += 70;
+
+        // --- alias 기준 ---
+        boolean aliasMatched = aliases.stream().anyMatch(a ->
+                a.getAlias().equals(raw)
+                        || (!hangulPrefix.isEmpty() && a.getAlias().startsWith(hangulPrefix))
+                        || (a.getAliasInitials() != null
+                        && a.getAliasInitials().startsWith(inputInitials))
+        );
+
+        if (aliasMatched) score += 40; // title보다 낮게
+
+        // --- 최종 생존 조건 ---
+        if (!titleInitialMatched && !aliasMatched) {
+            return ScoredRecipe.notMatched();
+        }
 
         return ScoredRecipe.matched(recipe, score);
     }

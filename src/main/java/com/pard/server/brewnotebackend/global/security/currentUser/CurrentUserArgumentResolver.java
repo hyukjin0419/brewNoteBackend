@@ -1,4 +1,4 @@
-package com.pard.server.brewnotebackend.domain.security.currentUser;
+package com.pard.server.brewnotebackend.global.security.currentUser;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.security.core.Authentication;

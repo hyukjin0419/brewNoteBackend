@@ -1,4 +1,4 @@
-package com.pard.server.brewnotebackend.domain.security.config;
+package com.pard.server.brewnotebackend.global.security.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

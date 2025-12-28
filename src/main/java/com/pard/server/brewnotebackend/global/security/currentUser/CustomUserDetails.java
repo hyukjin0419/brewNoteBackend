@@ -1,4 +1,4 @@
-package com.pard.server.brewnotebackend.domain.security.currentUser;
+package com.pard.server.brewnotebackend.global.security.currentUser;
 
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;

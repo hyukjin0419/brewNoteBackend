@@ -22,18 +22,29 @@ class RecipeSearchServiceTest {
     @Mock
     RecipeRepository recipeRepository;
 
+    @Mock
+    RecipeAliasRepository recipeAliasRepository;
+
     @InjectMocks
     RecipeServiceImpl recipeSearchService;
 
     @ParameterizedTest
-    @ValueSource(strings = {"아ㅁㄹ", "ㅇ메", "아멜", "아메리ㅋ", "ㅇㅁㄹ"})
+    @ValueSource(strings = {"아아", "아ㅁㄹ", "ㅇ메", "아멜", "아메리ㅋ", "ㅇㅁㄹ"})
     @DisplayName("다양한 검색 패턴으로 아메리카노 검색")
-    void recipe_search_method_Americano_test(String searchKeyword) {
+    void recipe_search_method_Americano_test_alias_포함(String searchKeyword) {
         // given
         Recipe americano = RecipeFixture.americano(); //아메리카노 레시피 객체
 
+        RecipeAlias alias = RecipeAlias.of(
+                americano.getId(),
+                "아아"
+        );
+
         given(recipeRepository.searchCandidates(any(), any(), any()))
                 .willReturn(List.of(americano));
+
+        given(recipeAliasRepository.findByRecipeIdIn(any()))
+                .willReturn(List.of(alias));
 
         // when
         List<RecipeSearchResponse> result =

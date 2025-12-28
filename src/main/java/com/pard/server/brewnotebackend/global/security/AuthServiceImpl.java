@@ -1,4 +1,4 @@
-package com.pard.server.brewnotebackend.domain.security;
+package com.pard.server.brewnotebackend.global.security;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

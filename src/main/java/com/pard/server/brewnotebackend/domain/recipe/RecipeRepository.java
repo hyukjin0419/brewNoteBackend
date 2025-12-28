@@ -1,6 +1,5 @@
 package com.pard.server.brewnotebackend.domain.recipe;
 
-import com.pard.server.brewnotebackend.domain.member.Member;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -33,4 +32,6 @@ public interface RecipeRepository extends JpaRepository<Recipe, UUID> {
             @Param("prefixKeyword") String prefixKeyword,
             Pageable pageable
     );
+
+    boolean existsByTitleAndFranchiseId(String title, UUID franchiseId);
 }

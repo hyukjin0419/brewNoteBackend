@@ -1,6 +1,6 @@
 package com.pard.server.brewnotebackend.global.config;
 
-import com.pard.server.brewnotebackend.domain.security.currentUser.CurrentUserArgumentResolver;
+import com.pard.server.brewnotebackend.global.security.currentUser.CurrentUserArgumentResolver;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;

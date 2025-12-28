@@ -1,7 +1,7 @@
-package com.pard.server.brewnotebackend.domain.security.jwt;
+package com.pard.server.brewnotebackend.global.security.jwt;
 
 import com.pard.server.brewnotebackend.domain.member.MemberRoleType;
-import com.pard.server.brewnotebackend.domain.security.currentUser.CustomUserDetails;
+import com.pard.server.brewnotebackend.global.security.currentUser.CustomUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

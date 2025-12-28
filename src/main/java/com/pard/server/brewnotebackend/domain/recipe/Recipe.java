@@ -70,6 +70,7 @@ public class Recipe extends BaseEntity {
                 .franchiseId(franchiseId)
                 .createdBy(creatorId)
                 .title(title)
+                .titleInitial(HangulUtils.extractInitialSequence(title))
                 .category(category)
                 .build();
     }

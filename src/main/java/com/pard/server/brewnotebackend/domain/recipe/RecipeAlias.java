@@ -25,15 +25,15 @@ public class RecipeAlias extends BaseEntity {
     @Column(name = "recipe_id", columnDefinition = "BINARY(16)", nullable = false)
     private UUID recipeId;
 
-
     @Column(nullable = false)
     private String alias;
 
     @Column(nullable = false)
     private String aliasInitials;
 
-    public static RecipeAlias of(String alias) {
+    public static RecipeAlias of(UUID recipeId, String alias) {
         return RecipeAlias.builder()
+                .recipeId(recipeId)
                 .alias(alias)
                 .aliasInitials(HangulUtils.extractInitialSequence(alias))
                 .build();

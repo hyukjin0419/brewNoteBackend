@@ -1,4 +1,4 @@
-package com.pard.server.brewnotebackend.domain.security.jwt;
+package com.pard.server.brewnotebackend.global.security.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
