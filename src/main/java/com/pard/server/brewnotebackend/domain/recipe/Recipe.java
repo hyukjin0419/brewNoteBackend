@@ -1,16 +1,12 @@
 package com.pard.server.brewnotebackend.domain.recipe;
 
 import com.pard.server.brewnotebackend.domain.common.BaseEntity;
-import com.pard.server.brewnotebackend.global.utils.InitialExtractor;
+import com.pard.server.brewnotebackend.global.utils.HangulUtils;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.UuidGenerator;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -20,10 +16,6 @@ import java.util.UUID;
 @SuperBuilder
 //@SQLRestriction("is_hidden = false")
 //@SQLDelete(sql = "UPDATE recipe SET is_hidden = true WHERE recipe_id = ?")
-@Table(indexes = {
-        @Index(name = "idx_recipe_title_initial", columnList = "title_initial"),
-        @Index(name = "idx_recipe_cafe_title", columnList = "cafe_id, title_initial")
-})
 public class Recipe extends BaseEntity {
 
     @Id
@@ -78,7 +70,6 @@ public class Recipe extends BaseEntity {
                 .franchiseId(franchiseId)
                 .createdBy(creatorId)
                 .title(title)
-                .titleInitial(InitialExtractor.getInitial(title))
                 .category(category)
                 .build();
     }

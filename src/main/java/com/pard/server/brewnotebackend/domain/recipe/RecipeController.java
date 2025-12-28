@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Tag(name = "Recipe", description = "레시피 관련 API")
 @Slf4j
 @RestController
@@ -59,7 +61,11 @@ public class RecipeController {
         return ResponseEntity.ok(recipeService.getFormData());
     }
 
-
+    //======================= ALL ========================//
     //등록된 레시피 전체 조회 (검색 기능 추가해야 함)
+    @GetMapping("/search/recipes")
+    public List<RecipeSearchResponse> search(@RequestParam String keyword) {
+        return recipeService.search(keyword);
+    }
 
 }

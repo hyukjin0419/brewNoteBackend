@@ -8,13 +8,11 @@ import com.pard.server.brewnotebackend.global.utils.UuidUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -89,6 +87,54 @@ public class RecipeServiceImpl implements RecipeService{
         List<FranchiseResponse> franchiseResponses =
                 franchiseRepository.findAll().stream().map(FranchiseResponse::fromEntity).toList();
         return RecipeFormDataResponse.from(recipeEnumOptionResponses, franchiseResponses);
+    }
+
+    private static final int CANDIDATE_LIMIT = 30;
+    private static final int RESULT_LIMIT = 10;
+
+    @Override
+    public List<RecipeSearchResponse> search(String keyword) {
+        if (keyword == null || keyword.isEmpty()) return List.of();
+
+        RecipeSearchToken token = RecipeSearchToken.from(keyword);
+
+        if(!token.hasInitial()) return List.of();
+
+        List<Recipe> candidates = recipeRepository.searchCandidates(
+                token.getInitialSequence() + "%",
+                token.hasHangulPrefix() ? token.getHangulPrefix() + "%" : null,
+                PageRequest.of(0,CANDIDATE_LIMIT)
+        );
+
+        List<ScoredRecipe> scored = candidates.stream()
+                .map(recipe -> matchAndScore(recipe, token))
+                .filter(ScoredRecipe::isMatched)
+                .toList();
+
+        return scored.stream()
+                .sorted(Comparator.comparingInt(ScoredRecipe::getScore).reversed())
+                .limit(RESULT_LIMIT)
+                .map(RecipeSearchResponse::from)
+                .toList();
+    }
+
+    private ScoredRecipe matchAndScore(Recipe recipe, RecipeSearchToken token) {
+
+        int score = 0;
+
+        String raw = token.getRaw();
+        String hangulPrefix = token.getHangulPrefix();
+        String inputInitials = token.getInitialSequence();
+
+        if (recipe.getTitle().equals(raw)) score += 100;
+
+        if(!hangulPrefix.isEmpty() && recipe.getTitle().startsWith(hangulPrefix)) score += 90;
+
+        if(!recipe.getTitleInitial().startsWith(inputInitials)) return ScoredRecipe.notMatched();
+
+        score += 70;
+
+        return ScoredRecipe.matched(recipe, score);
     }
 }
 
