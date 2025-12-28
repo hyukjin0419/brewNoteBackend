@@ -1,5 +1,6 @@
 package com.pard.server.brewnotebackend.domain.recipe;
 
+import com.pard.server.brewnotebackend.global.utils.UuidUtils;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
@@ -45,6 +46,11 @@ public class RecipeController {
     @GetMapping("/search/recipes")
     public List<RecipeSearchResponse> search(@RequestParam String keyword) {
         return recipeService.search(keyword);
+    }
+
+    @GetMapping("/{recipeId}")
+    public RecipeDetailResponse getRecipeDetail(@PathVariable String recipeId) {
+        return recipeService.getRecipeDetail(UuidUtils.parse(recipeId));
     }
 
 }

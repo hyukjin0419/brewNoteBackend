@@ -216,6 +216,49 @@ public class RecipeServiceImpl implements RecipeService{
 
         return ScoredRecipe.matched(recipe, score);
     }
+
+    @Override
+    public RecipeDetailResponse getRecipeDetail(UUID recipeId) {
+        Recipe recipe = recipeRepository.findById(recipeId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("레시피를 찾을 수 없습니다.")
+                );
+
+        // 2. Variant 전체 조회
+        List<RecipeVariant> variants =
+                recipeVariantRepository.findByRecipeIdAndIsHiddenFalse(recipeId);
+
+        if (variants.isEmpty()) {
+            throw new IllegalStateException("레시피에 Variant가 존재하지 않습니다.");
+        }
+
+        List<RecipeDetailResponse.VariantResponse> variantResponses =
+                variants.stream().map(variant -> {
+                    List<String> steps = recipeStepRepository
+                            .findByVariantIdOrderByStepOrderAsc(variant.getId())
+                            .stream()
+                            .map(RecipeStep::getDescription)
+                            .toList();
+
+                    if (steps.isEmpty()) {
+                        throw new IllegalStateException("Variant에 Step이 존재하지 않습니다.");
+                    }
+
+                    return RecipeDetailResponse.VariantResponse.from(
+                            variant.getId(),
+                            variant.getType(),
+                            variant.isDefault(),
+                            steps
+                    );
+                }).toList();
+
+        return RecipeDetailResponse.from(
+                recipe.getId(),
+                recipe.getTitle(),
+                recipe.getCategory().name(),
+                variantResponses
+        );
+    }
 }
 
 
