@@ -25,7 +25,7 @@ public class RecipeServiceImpl implements RecipeService{
 
     private final MemberRepository memberRepository;
     private final RecipeRepository recipeRepository;
-    private final RecipeOptionRepository recipeOptionRepository;
+    private final RecipeVariantRepository recipeVariantRepository;
     private final RecipeStepRepository recipeStepRepository;
     private final FranchiseRepository franchiseRepository;
     private final RecipeAliasRepository recipeAliasRepository;
@@ -37,43 +37,44 @@ public class RecipeServiceImpl implements RecipeService{
         UUID creatorId = memberRepository.findByRole(MemberRoleType.ADMIN)
                 .orElseThrow(() -> new EntityNotFoundException("ADMIN을 찾을 수 없습니다.")).getId();
 
+        //레시피 저장 (초성 포함)
         if (recipeRepository.existsByTitleAndFranchiseId(request.getTitle().trim(), franchiseId)) {
             log.warn("이미 해당 프랜차이즈에 동일한 이름의 레시피가 존재합니다: {}", request.getTitle());
             throw new BusinessException(ErrorCode.DUPLICATED_RECIPE);
         }
 
-        log.warn("검색 조건 -> title: [{}], franchiseId: [{}]", request.getTitle(), franchiseId);
-
         Recipe recipe = Recipe.of(franchiseId, creatorId, request.getTitle(), RecipeCategory.valueOf(request.getCategory()));
 
         recipeRepository.save(recipe);
 
-        List<String> optionValues = request.getRecipeOptions();
+        //recipe variant 저장
+        validateVariants(request.getVariants());
 
-        if (optionValues != null && !optionValues.isEmpty()) {
-            List<RecipeOption> options = optionValues.stream()
-                    .map(option -> RecipeOption.of(recipe.getId(), option)).toList();
+        for (RecipeCreateRequest.VariantRequest variantRequest : request.getVariants()) {
+            RecipeVariant variant = RecipeVariant.of(recipe.getId(), variantRequest.getOptionType(), variantRequest.isDefault());
 
-            recipeOptionRepository.saveAll(options);
-        }
+            recipeVariantRepository.save(variant);
 
-        List<String> stepContents = request.getSteps();
+            List<String> steps = variantRequest.getSteps();
+            if (steps == null || steps.isEmpty()) {
+                throw new BusinessException(ErrorCode.RECIPE_STEP_REQUIRED);
+            }
 
-        if (stepContents != null && !stepContents.isEmpty()) {
-            List<RecipeStep> steps = new ArrayList<>();
-
-            for (int i = 0; i < stepContents.size(); i++) {
-                steps.add(
+            List<RecipeStep> recipeSteps = new ArrayList<>();
+            for (int i = 0; i < steps.size(); i++) {
+                recipeSteps.add(
                         RecipeStep.of(
-                                recipe.getId(),
-                                i + 1,
-                                stepContents.get(i)
+                                variant.getId(),
+                                i+1,
+                                steps.get(i)
                         )
                 );
             }
-            recipeStepRepository.saveAll(steps);
+
+            recipeStepRepository.saveAll(recipeSteps);
         }
 
+        //alias 저장
         List<String> aliasRequest = request.getAlias();
         if (aliasRequest != null && !aliasRequest.isEmpty()) {
             List<RecipeAlias> aliases = aliasRequest.stream()
@@ -86,6 +87,33 @@ public class RecipeServiceImpl implements RecipeService{
             recipeAliasRepository.saveAll(aliases);
         }
     }
+
+    //recipe variant 유효성 검증
+    private void validateVariants(List<RecipeCreateRequest.VariantRequest> variants) {
+
+        if (variants == null || variants.isEmpty()) {
+            throw new BusinessException(ErrorCode.RECIPE_VARIANT_REQUIRED);
+        }
+
+        // 1. variantType 중복 방지
+        Set<RecipeOptionType> types = new HashSet<>();
+        for (RecipeCreateRequest.VariantRequest variant : variants) {
+            System.out.println("입력된 타입 : " + variant.getOptionType());
+            if (!types.add(variant.getOptionType())) {
+                throw new BusinessException(ErrorCode.DUPLICATED_VARIANT_TYPE);
+            }
+        }
+
+        // 2. default variant는 정확히 1개
+        long defaultCount = variants.stream()
+                .filter(RecipeCreateRequest.VariantRequest::isDefault)
+                .count();
+
+        if (defaultCount != 1) {
+            throw new BusinessException(ErrorCode.INVALID_DEFAULT_VARIANT);
+        }
+    }
+
 
     //그리고 이거를 작성할 수 있는 화면도 만들어줘야 한다 -> 이건 커서가
     //프론트로 넘겨줄 때 프렌차이즈 + 카테고리 선택할 수 있게 넘겨주어야 한다.
@@ -102,6 +130,7 @@ public class RecipeServiceImpl implements RecipeService{
         return RecipeFormDataResponse.from(recipeEnumOptionResponses, franchiseResponses);
     }
 
+    //검색
     private static final int CANDIDATE_LIMIT = 30;
     private static final int RESULT_LIMIT = 10;
 

@@ -21,8 +21,8 @@ public class RecipeStep extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(columnDefinition = "BINARY(16)")
-    private UUID recipeId;
+    @Column(name = "variant_id", nullable = false)
+    private Long variantId;
 
     @Column(nullable = false)
     private Integer stepOrder; //순서 1,2,3....
@@ -32,12 +32,12 @@ public class RecipeStep extends BaseEntity {
 
 
     public static RecipeStep of(
-            UUID recipeId,
+            Long variantId,
             int stepOrder,
             String description
     ) {
         return RecipeStep.builder()
-                .recipeId(recipeId)
+                .variantId(variantId)
                 .stepOrder(stepOrder)
                 .description(description)
                 .build();

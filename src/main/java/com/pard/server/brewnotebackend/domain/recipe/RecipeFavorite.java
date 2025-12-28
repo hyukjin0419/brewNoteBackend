@@ -28,6 +28,6 @@ public class RecipeFavorite {
     @Column(columnDefinition = "BINARY(16)")
     private UUID memberId;
 
-    @Column(columnDefinition = "BINARY(16)")
-    private UUID recipeId;
+    @Column(nullable = false)
+    private Long recipeVariantId;
 }
