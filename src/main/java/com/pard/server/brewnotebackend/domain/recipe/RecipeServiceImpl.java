@@ -218,6 +218,96 @@ public class RecipeServiceImpl implements RecipeService{
     }
 
     @Override
+    public List<RecipeDetailResponse> getRecipes(RecipeDetailRequest request) {
+        // 둘 다 없음
+        if (request.getCategory() == null && request.getFavorite() == null) {
+            throw new IllegalArgumentException("category 또는 favorite 중 하나는 필수입니다.");
+        }
+
+        // 동시에 사용
+        if (request.getCategory() != null && Boolean.TRUE.equals(request.getFavorite())) {
+            throw new IllegalArgumentException("category와 favorite는 동시에 사용할 수 없습니다.");
+        }
+
+        UUID franchiseId = UuidUtils.parse(request.getFranchiseId());
+        RecipeCategory category = RecipeCategory.valueOf(request.getCategory());
+
+        List<Recipe> recipes = List.of();
+
+        if (request.getCategory() != null) {
+            recipes = recipeRepository
+                    .findByFranchiseIdAndCategoryAndIsHiddenFalseOrderByTitleAsc(
+                            franchiseId, category
+                    );
+        } else {
+//            recipes = recipeRepository
+//                    .findByFavoriteRecipesByFranchiseIdAndMemberId(
+//                            franchiseId, memberId
+//                    )
+        }
+
+        if (recipes.isEmpty()) {
+            return List.of();
+        }
+
+        // Recipe <- Variant 조회 및 배치
+        List<UUID> recipeIds = recipes.stream()
+                .map(Recipe::getId)
+                .toList();
+
+        List<RecipeVariant> variants = recipeVariantRepository.findByRecipeIdInAndIsHiddenFalse(recipeIds);
+
+        Map<UUID, List<RecipeVariant>> variantMap = variants.stream()
+                .collect(Collectors.groupingBy(RecipeVariant::getRecipeId));
+
+        // variant <- step 배치 조회 및 배치
+        List<Long> variantIds = variants.stream()
+                .map(RecipeVariant::getId)
+                .toList();
+
+        Map<Long, List<RecipeStep>> stepMap =
+                recipeStepRepository
+                        .findByVariantIdInOrderByStepOrderAsc(variantIds)
+                        .stream()
+                        .collect(Collectors.groupingBy(
+                                RecipeStep::getVariantId
+                        ));
+
+        // Response 조립
+        return recipes.stream()
+                .map(recipe -> {
+                    List<RecipeVariant> recipeVariants =
+                            variantMap.getOrDefault(recipe.getId(), List.of());
+
+                    List<RecipeDetailResponse.VariantResponse> variantResponses =
+                            recipeVariants.stream()
+                                    .map(variant -> {
+                                        List<String> steps =
+                                                stepMap.getOrDefault(
+                                                        variant.getId(),
+                                                        List.of()
+                                                ).stream()
+                                                        .map(RecipeStep::getDescription)
+                                                        .toList();
+
+                                        return RecipeDetailResponse.VariantResponse.from(
+                                                variant.getId(),
+                                                variant.getType(),
+                                                variant.isDefault(),
+                                                steps
+                                        );
+                                    }).toList();
+
+                    return RecipeDetailResponse.from(
+                            recipe.getId(),
+                            recipe.getTitle(),
+                            recipe.getCategory().name(),
+                            variantResponses
+                    );
+                }).toList();
+    }
+
+    @Override
     public RecipeDetailResponse getRecipeDetail(UUID recipeId) {
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() ->

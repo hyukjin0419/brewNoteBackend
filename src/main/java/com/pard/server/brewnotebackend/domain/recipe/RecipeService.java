@@ -10,5 +10,7 @@ public interface RecipeService {
 
     List<RecipeSearchResponse> search(String keyword);
 
+    List<RecipeDetailResponse> getRecipes(RecipeDetailRequest request);
+
     RecipeDetailResponse getRecipeDetail(UUID recipeId);
 }

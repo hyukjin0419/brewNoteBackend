@@ -8,5 +8,5 @@ import java.util.UUID;
 public interface RecipeVariantRepository extends JpaRepository<RecipeVariant, Long> {
 
     List<RecipeVariant> findByRecipeIdAndIsHiddenFalse(UUID recipeId);
-
+    List<RecipeVariant> findByRecipeIdInAndIsHiddenFalse(List<UUID> recipeIds);
 }

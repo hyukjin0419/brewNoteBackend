@@ -48,6 +48,17 @@ public class RecipeController {
         return recipeService.search(keyword);
     }
 
+    @GetMapping("/recipes")
+    public List<RecipeDetailResponse> getRecipes(
+            @RequestParam(required = false) String franchiseId,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Boolean favorite
+    ) {
+        RecipeDetailRequest request = RecipeDetailRequest.of(franchiseId, category, favorite);
+        return recipeService.getRecipes(request);
+    }
+
+
     @GetMapping("/{recipeId}")
     public RecipeDetailResponse getRecipeDetail(@PathVariable String recipeId) {
         return recipeService.getRecipeDetail(UuidUtils.parse(recipeId));
