@@ -36,3 +36,9 @@ out/
 ### VS Code ###
 .vscode/
 /src/main/resources/*
+
+# Environment variables
+.env
+.env.prod
+
+docker-compose.local.yml

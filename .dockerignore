@@ -1,0 +1,30 @@
+# Build outputs
+build/
+.gradle/
+*.class
+*.jar
+*.war
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Logs
+*.log
+
+# Frontend
+web-mvp/
+node_modules/
+
+dist

@@ -1,0 +1,88 @@
+version: "3.8"
+
+services:
+  # =========================
+  # Backend (Spring Boot)
+  # =========================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blendery-backend
+    expose:
+      - "8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+
+      SPRING_DATASOURCE_URL: ${DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${DATASOURCE_PASSWORD}
+
+      JWT_AUTH_SECRET: ${JWT_AUTH_SECRET}
+#      JWT_VERIFICATION_SECRET: ${JWT_VERIFICATION_SECRET}
+#      JWT_PASSWORD_SECRET: ${JWT_PASSWORD_SECRET}
+      JWT_ACCESS_TOKEN_VALID_TIME: ${JWT_ACCESS_TOKEN_VALID_TIME}
+      JWT_REFRESH_TOKEN_VALID_TIME: ${JWT_REFRESH_TOKEN_VALID_TIME}
+
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - blendery-network
+    restart: unless-stopped
+
+  # =========================
+  # Frontend (Nginx + SPA)
+  # =========================
+  frontend:
+    build:
+      context: ./web-mvp
+      dockerfile: Dockerfile
+    container_name: blendery-frontend
+    ports:
+      - "${FRONTEND_PORT}:80"
+    depends_on:
+      - backend
+    networks:
+      - blendery-network
+    restart: unless-stopped
+
+  # =========================
+  # MySQL
+  # =========================
+  mysql:
+    image: mysql:8.0
+    container_name: blendery-mysql
+#    expose:
+#      - "3306"
+#    environment:
+#      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+#      MYSQL_DATABASE: ${MYSQL_DATABASE}
+#      MYSQL_USER: ${MYSQL_USER}
+#      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+#    volumes:
+#      - mysql-data:/var/lib/mysql
+#      - ./mysql-init:/docker-entrypoint-initdb.d
+#    healthcheck:
+#      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+    networks:
+      - blendery-network
+    restart: unless-stopped
+
+# =========================
+# Network
+# =========================
+networks:
+  blendery-network:
+    driver: bridge
+
+# =========================
+# Volumes
+# =========================
+volumes:
+  mysql-data:
