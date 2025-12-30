@@ -5,9 +5,10 @@ services:
   # Backend (Spring Boot)
   # =========================
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+    image: redtruth0419/blendery_backend:latest
     container_name: blendery-backend
     expose:
       - "8080"
@@ -55,21 +56,21 @@ services:
   mysql:
     image: mysql:8.0
     container_name: blendery-mysql
-#    expose:
-#      - "3306"
-#    environment:
-#      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-#      MYSQL_DATABASE: ${MYSQL_DATABASE}
-#      MYSQL_USER: ${MYSQL_USER}
-#      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-#    volumes:
-#      - mysql-data:/var/lib/mysql
-#      - ./mysql-init:/docker-entrypoint-initdb.d
-#    healthcheck:
-#      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
-#      interval: 10s
-#      timeout: 5s
-#      retries: 5
+    expose:
+      - "3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - blendery-network
     restart: unless-stopped
