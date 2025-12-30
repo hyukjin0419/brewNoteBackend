@@ -10,10 +10,6 @@ spring:
         jdbc:
           time_zone: Asia/Seoul
 
-
-  profiles:
-    active: ${SPRING_PROFILES_ACTIVE}
-
   datasource:
     driver-class-name: ${DRIVER_CLASS_NAME}
     url: ${DATASOURCE_URL}
