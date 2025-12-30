@@ -6,8 +6,10 @@ import type {
   RecipeCreateRequest,
 } from '../types/recipe';
 
+const baseURL = import.meta.env.VITE_API_URL || '/api';
+
 const apiClient = axios.create({
-  baseURL: '/api',
+  baseURL: baseURL,
   headers: {
     'Content-Type': 'application/json',
   },
