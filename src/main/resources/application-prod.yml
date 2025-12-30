@@ -11,8 +11,7 @@ spring:
           time_zone: Asia/Seoul
 
   datasource:
-    driver-class-name: ${DRIVER_CLASS_NAME}
-    url: ${DATASOURCE_URL}
+    driver-class-name: ${DRIVER_CLASS_NAME:com.mysql.cj.jdbc.Driver}
     username: ${DATASOURCE_USERNAME}
     password: ${DATASOURCE_PASSWORD}
 
