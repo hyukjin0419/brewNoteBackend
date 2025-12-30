@@ -3,6 +3,9 @@ name: Deploy to EC2 with Docker
 on:
   push:
     branches: [ "main" ]
+    paths-ignore:
+      - 'web-mvp/**'
+      - '**.md'
 
 jobs:
   deploy:
