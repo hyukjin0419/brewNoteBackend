@@ -4,6 +4,7 @@ import com.pard.server.brewnotebackend.global.security.currentUser.CurrentUserAr
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
@@ -11,6 +12,19 @@ import java.util.List;
 @Configuration
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                // 기존 로컬 주소와 함께 새로 만든 Netlify 주소를 추가합니다.
+                .allowedOrigins(
+                        "http://localhost:5173",
+                        "https://blendery5.netlify.app"
+                )
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true);
+    }
 
     //정의한 custom method의 parameter를 controller에 내가 정의한 방식으로 자동 주입.
     /*
