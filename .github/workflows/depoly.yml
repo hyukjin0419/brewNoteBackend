@@ -46,6 +46,6 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd ~/app
-            sudo docker-compose pull
-            sudo docker-compose up -d
+            sudo docker compose pull
+            sudo docker compose up -d
             sudo docker image prune -f # 오래된 이미지를 삭제해 용량 확보
