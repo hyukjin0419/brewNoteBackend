@@ -15,6 +15,8 @@ public class RecipeCreateRequest {
     private String franchiseId;
     private String title;
     private String category;
+    private String hotImgUrl;
+    private String iceImgUrl;
     private List<String> alias;
 
     private List<VariantRequest> variants;

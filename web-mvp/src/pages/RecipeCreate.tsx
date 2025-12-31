@@ -30,6 +30,8 @@ function RecipeCreate() {
     franchiseId: '',
     title: '',
     category: '',
+    hotImgUrl: '',
+    iceImgUrl: '',
     alias: [],
     variants: [],
   });
@@ -351,9 +353,22 @@ function RecipeCreate() {
       return;
     }
 
-    const hasDefault = form.variants.some((v) => v.isDefault);
-    if (!hasDefault) {
-      alert('기본 옵션을 하나 이상 선택해주세요.');
+    // variant type 중복 체크
+    const variantTypes = form.variants.map((v) => v.optionType);
+    const uniqueTypes = new Set(variantTypes);
+    if (variantTypes.length !== uniqueTypes.size) {
+      alert('중복된 옵션 타입이 있습니다. 각 옵션 타입은 하나만 선택할 수 있습니다.');
+      return;
+    }
+
+    // default variant는 정확히 1개
+    const defaultCount = form.variants.filter((v) => v.isDefault).length;
+    if (defaultCount === 0) {
+      alert('기본 옵션을 하나 선택해주세요.');
+      return;
+    }
+    if (defaultCount > 1) {
+      alert('기본 옵션은 정확히 하나만 선택해야 합니다.');
       return;
     }
 
@@ -363,17 +378,30 @@ function RecipeCreate() {
       // 확정된 별칭만 필터링 (빈 값 제외)
       const filteredAliases = confirmedAliases.filter((alias) => alias.trim() !== '');
       
+      // 빈 문자열을 undefined로 변환 (백엔드에서 null로 처리되도록)
       const requestData: RecipeCreateRequest = {
         ...form,
+        franchiseId: form.franchiseId,
+        title: form.title,
+        category: form.category,
+        hotImgUrl: form.hotImgUrl?.trim() || undefined,
+        iceImgUrl: form.iceImgUrl?.trim() || undefined,
         alias: filteredAliases,
+        variants: form.variants,
       };
 
+      console.log('전송할 데이터:', JSON.stringify(requestData, null, 2));
+      
       await createRecipe(requestData);
       alert('레시피가 성공적으로 등록되었습니다.');
       navigate('/');
-    } catch (error) {
+    } catch (error: any) {
       console.error('레시피 생성 오류:', error);
-      alert('레시피 등록에 실패했습니다.');
+      const errorMessage = error?.response?.data?.message || 
+                          error?.response?.data?.error || 
+                          error?.message || 
+                          '레시피 등록에 실패했습니다.';
+      alert(`레시피 등록에 실패했습니다.\n${errorMessage}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -443,6 +471,50 @@ function RecipeCreate() {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="form-group">
+            <label>HOT 이미지 URL (선택사항)</label>
+            <input
+              type="url"
+              value={form.hotImgUrl || ''}
+              onChange={(e) => handleInputChange('hotImgUrl', e.target.value)}
+              placeholder="https://example.com/hot-image.jpg"
+            />
+            {form.hotImgUrl && (
+              <div className="image-preview">
+                <img
+                  src={form.hotImgUrl}
+                  alt="HOT 미리보기"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                  className="preview-image"
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="form-group">
+            <label>ICE 이미지 URL (선택사항)</label>
+            <input
+              type="url"
+              value={form.iceImgUrl || ''}
+              onChange={(e) => handleInputChange('iceImgUrl', e.target.value)}
+              placeholder="https://example.com/ice-image.jpg"
+            />
+            {form.iceImgUrl && (
+              <div className="image-preview">
+                <img
+                  src={form.iceImgUrl}
+                  alt="ICE 미리보기"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                  className="preview-image"
+                />
+              </div>
+            )}
           </div>
 
           <div className="form-group">

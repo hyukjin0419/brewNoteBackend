@@ -49,7 +49,9 @@ public class Recipe extends BaseEntity {
     @Column(nullable = false)
     private RecipeCategory category;
 
-    private String thumbnailUrl;
+    private String hotThumbnailUrl;
+
+    private String iceThumbnailUrl;
 
     @Builder.Default
     private boolean isSignature = false;
@@ -64,6 +66,8 @@ public class Recipe extends BaseEntity {
             UUID franchiseId,
             UUID creatorId,
             String title,
+            String hotThumbnailUrl,
+            String iceThumbnailUrl,
             RecipeCategory category
     ) {
         return Recipe.builder()
@@ -71,6 +75,8 @@ public class Recipe extends BaseEntity {
                 .createdBy(creatorId)
                 .title(title)
                 .titleInitial(HangulUtils.extractInitialSequence(title))
+                .hotThumbnailUrl(hotThumbnailUrl)
+                .iceThumbnailUrl(iceThumbnailUrl)
                 .category(category)
                 .build();
     }

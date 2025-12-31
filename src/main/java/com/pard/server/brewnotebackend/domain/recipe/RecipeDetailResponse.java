@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.PrimitiveIterator;
 import java.util.UUID;
 
 @Getter
@@ -17,19 +18,21 @@ public class RecipeDetailResponse {
     private UUID recipeId;
     private String title;
     private String category;
+    private String hotThumbnailUrl;
+    private String iceThumbnailUrl;
 
     private List<VariantResponse> variants;
 
     public static RecipeDetailResponse from(
-            UUID recipeId,
-            String title,
-            String category,
+            Recipe recipe,
             List<VariantResponse> variants
     ) {
         return RecipeDetailResponse.builder()
-                .recipeId(recipeId)
-                .title(title)
-                .category(category)
+                .recipeId(recipe.getId())
+                .title(recipe.getTitle())
+                .category(recipe.getCategory().name())
+                .hotThumbnailUrl(recipe.getHotThumbnailUrl())
+                .iceThumbnailUrl(recipe.getIceThumbnailUrl())
                 .variants(variants)
                 .build();
     }

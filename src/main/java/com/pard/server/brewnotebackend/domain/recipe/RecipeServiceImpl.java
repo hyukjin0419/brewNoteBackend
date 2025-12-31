@@ -6,6 +6,7 @@ import com.pard.server.brewnotebackend.domain.member.MemberRepository;
 import com.pard.server.brewnotebackend.domain.member.MemberRoleType;
 import com.pard.server.brewnotebackend.global.exception.BusinessException;
 import com.pard.server.brewnotebackend.global.exception.ErrorCode;
+import com.pard.server.brewnotebackend.global.utils.GoogleDriveUtils;
 import com.pard.server.brewnotebackend.global.utils.UuidUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +44,13 @@ public class RecipeServiceImpl implements RecipeService{
             throw new BusinessException(ErrorCode.DUPLICATED_RECIPE);
         }
 
-        Recipe recipe = Recipe.of(franchiseId, creatorId, request.getTitle(), RecipeCategory.valueOf(request.getCategory()));
+        Recipe recipe = Recipe.of(
+                franchiseId,
+                creatorId,
+                request.getTitle(),
+                GoogleDriveUtils.convertToDirectLink(request.getHotImgUrl()),
+                GoogleDriveUtils.convertToDirectLink(request.getIceImgUrl()),
+                RecipeCategory.valueOf(request.getCategory()));
 
         recipeRepository.save(recipe);
 
@@ -299,9 +306,7 @@ public class RecipeServiceImpl implements RecipeService{
                                     }).toList();
 
                     return RecipeDetailResponse.from(
-                            recipe.getId(),
-                            recipe.getTitle(),
-                            recipe.getCategory().name(),
+                            recipe,
                             variantResponses
                     );
                 }).toList();
@@ -343,9 +348,7 @@ public class RecipeServiceImpl implements RecipeService{
                 }).toList();
 
         return RecipeDetailResponse.from(
-                recipe.getId(),
-                recipe.getTitle(),
-                recipe.getCategory().name(),
+                recipe,
                 variantResponses
         );
     }
