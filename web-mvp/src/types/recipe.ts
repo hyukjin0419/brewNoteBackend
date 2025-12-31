@@ -30,6 +30,8 @@ export interface RecipeDetailResponse {
   recipeId: string;
   title: string;
   category: string;
+  hotThumbnailUrl?: string;
+  iceThumbnailUrl?: string;
   variants: VariantResponse[];
 }
 
@@ -45,6 +47,8 @@ export interface RecipeCreateRequest {
   franchiseId: string;
   title: string;
   category: string;
+  hotImgUrl?: string;
+  iceImgUrl?: string;
   alias: string[];
   variants: VariantRequest[];
 }

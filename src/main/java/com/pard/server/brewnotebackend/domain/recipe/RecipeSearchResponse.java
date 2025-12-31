@@ -15,7 +15,7 @@ public class RecipeSearchResponse {
     private UUID recipeId;
     private String title;
     private RecipeCategory category;
-//    private String thumbnailUrl;
+    private String thumbnailUrl;
     private boolean isSignature;
     private boolean isNew;
 
@@ -26,7 +26,7 @@ public class RecipeSearchResponse {
                 recipe.getId(),
                 recipe.getTitle(),
                 recipe.getCategory(),
-//                recipe.getThumbnailUrl(),
+                recipe.getRepresentativeThumbnail(),
                 recipe.isSignature(),
                 recipe.isNew()
         );
@@ -37,7 +37,7 @@ public class RecipeSearchResponse {
                 recipe.getId(),
                 recipe.getTitle(),
                 recipe.getCategory(),
-//                recipe.getThumbnailUrl(),
+                recipe.getRepresentativeThumbnail(),
                 recipe.isSignature(),
                 recipe.isNew()
         );

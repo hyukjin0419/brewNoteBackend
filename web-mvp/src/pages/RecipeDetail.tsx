@@ -19,10 +19,16 @@ function RecipeDetail() {
       try {
         setIsLoading(true);
         const data = await getRecipeDetail(recipeId);
+        console.log('=== 레시피 상세 데이터 ===');
+        console.log('전체 데이터:', JSON.stringify(data, null, 2));
+        console.log('hotThumbnailUrl:', data.hotThumbnailUrl);
+        console.log('iceThumbnailUrl:', data.iceThumbnailUrl);
+        console.log('variants:', data.variants);
         setRecipe(data);
 
         // isDefault=true인 variant를 초기 선택
         const defaultVariant = data.variants.find((v) => v.isDefault) || data.variants[0];
+        console.log('선택된 variant:', defaultVariant);
         setSelectedVariant(defaultVariant);
       } catch (err) {
         console.error('레시피 조회 오류:', err);
@@ -37,6 +43,24 @@ function RecipeDetail() {
 
   const handleVariantClick = (variant: VariantResponse) => {
     setSelectedVariant(variant);
+  };
+
+  // variant type에 따라 적절한 썸네일 URL 반환
+  const getThumbnailUrl = (variant: VariantResponse | null): string | undefined => {
+    if (!variant || !recipe) {
+      return undefined;
+    }
+    
+    // HOT 타입이면 hotThumbnailUrl, ICE 타입이면 iceThumbnailUrl
+    const isHot = variant.type === 'HOT_LARGE' || variant.type === 'HOT_EXTRA';
+    const thumbnailUrl = isHot ? recipe.hotThumbnailUrl : recipe.iceThumbnailUrl;
+    
+    // 빈 문자열이나 null 체크
+    if (!thumbnailUrl || thumbnailUrl.trim() === '') {
+      return undefined;
+    }
+    
+    return thumbnailUrl;
   };
 
   if (isLoading) {
@@ -68,6 +92,56 @@ function RecipeDetail() {
         <div className="recipe-header">
           <h1>{recipe.title}</h1>
           <span className="category-badge">{recipe.category}</span>
+        </div>
+
+        <div className="thumbnail-section">
+          {selectedVariant && (() => {
+            const thumbnailUrl = getThumbnailUrl(selectedVariant);
+            const isHot = selectedVariant.type === 'HOT_LARGE' || selectedVariant.type === 'HOT_EXTRA';
+            
+            console.log('=== 썸네일 렌더링 ===');
+            console.log('variant type:', selectedVariant.type);
+            console.log('isHot:', isHot);
+            console.log('hotThumbnailUrl:', recipe.hotThumbnailUrl);
+            console.log('iceThumbnailUrl:', recipe.iceThumbnailUrl);
+            console.log('선택된 thumbnailUrl:', thumbnailUrl);
+            
+            if (thumbnailUrl) {
+              return (
+                <img
+                  key={`${selectedVariant.variantId}-${thumbnailUrl}`}
+                  src={thumbnailUrl}
+                  alt={`${recipe.title} - ${selectedVariant.type}`}
+                  className="recipe-thumbnail"
+                  onLoad={() => {
+                    console.log('✅ 이미지 로드 성공:', thumbnailUrl);
+                  }}
+                  onError={(e) => {
+                    console.error('❌ 이미지 로드 실패:', thumbnailUrl);
+                    console.error('에러 상세:', e);
+                    const img = e.target as HTMLImageElement;
+                    img.style.display = 'none';
+                    const placeholder = img.parentElement?.querySelector('.thumbnail-placeholder') as HTMLElement;
+                    if (placeholder) {
+                      placeholder.style.display = 'flex';
+                    }
+                  }}
+                />
+              );
+            }
+            
+            console.warn('⚠️ 썸네일 URL이 없습니다');
+            return (
+              <div className="thumbnail-placeholder">
+                <span>이미지 없음</span>
+              </div>
+            );
+          })()}
+          {!selectedVariant && (
+            <div className="thumbnail-placeholder">
+              <span>옵션을 선택해주세요</span>
+            </div>
+          )}
         </div>
 
         <div className="variants-section">

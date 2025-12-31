@@ -15,6 +15,20 @@ const apiClient = axios.create({
   },
 });
 
+// 에러 인터셉터 추가
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error('API Error:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message,
+    });
+    return Promise.reject(error);
+  }
+);
+
 // 레시피 검색
 export const searchRecipes = async (keyword: string): Promise<RecipeSearchResponse[]> => {
   const { data } = await apiClient.get<RecipeSearchResponse[]>('/recipe/search/recipes', {

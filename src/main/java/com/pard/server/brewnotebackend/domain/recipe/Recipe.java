@@ -49,7 +49,9 @@ public class Recipe extends BaseEntity {
     @Column(nullable = false)
     private RecipeCategory category;
 
-    private String thumbnailUrl;
+    private String hotThumbnailUrl;
+
+    private String iceThumbnailUrl;
 
     @Builder.Default
     private boolean isSignature = false;
@@ -64,6 +66,8 @@ public class Recipe extends BaseEntity {
             UUID franchiseId,
             UUID creatorId,
             String title,
+            String hotThumbnailUrl,
+            String iceThumbnailUrl,
             RecipeCategory category
     ) {
         return Recipe.builder()
@@ -71,7 +75,20 @@ public class Recipe extends BaseEntity {
                 .createdBy(creatorId)
                 .title(title)
                 .titleInitial(HangulUtils.extractInitialSequence(title))
+                .hotThumbnailUrl(hotThumbnailUrl)
+                .iceThumbnailUrl(iceThumbnailUrl)
                 .category(category)
                 .build();
+    }
+
+
+    // ----------- 레시피 대표 Img --------------------//
+    public String getRepresentativeThumbnail() {
+        // 1순위: HOT 이미지가 있으면 반환
+        if (this.hotThumbnailUrl != null && !this.hotThumbnailUrl.isBlank()) {
+            return this.hotThumbnailUrl;
+        }
+        // 2순위: HOT이 없으면 ICE 이미지 반환
+        return this.iceThumbnailUrl;
     }
 }
