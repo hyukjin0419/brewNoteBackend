@@ -3,14 +3,11 @@
 export type RecipeCategory =
   | 'COFFEE'
   | 'COLD_BREW'
+  | 'DECAFEINE'
   | 'NON_COFFEE'
-  | 'ADE'
-  | 'CLEANSE_JUICE'
-  | 'FRUIT_JUICE'
-  | 'SHAKE'
-  | 'FLATCCINO'
+  | 'BLENDED'
   | 'TEA'
-  | 'SEASONAL_MENU'
+  | 'ADE'
   | 'SOFT_ICE_CREAM'
   | 'BREAD';
 
