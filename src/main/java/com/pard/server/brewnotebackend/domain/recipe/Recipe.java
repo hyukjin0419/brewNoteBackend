@@ -80,4 +80,15 @@ public class Recipe extends BaseEntity {
                 .category(category)
                 .build();
     }
+
+
+    // ----------- 레시피 대표 Img --------------------//
+    public String getRepresentativeThumbnail() {
+        // 1순위: HOT 이미지가 있으면 반환
+        if (this.hotThumbnailUrl != null && !this.hotThumbnailUrl.isBlank()) {
+            return this.hotThumbnailUrl;
+        }
+        // 2순위: HOT이 없으면 ICE 이미지 반환
+        return this.iceThumbnailUrl;
+    }
 }
