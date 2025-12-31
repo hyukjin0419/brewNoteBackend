@@ -201,18 +201,11 @@ function RecipeCreate() {
       if (trimmed) {
         isProcessingStep.current = true;
         
-        // 값이 있으면 확정 리스트에 추가
-        setCurrentVariant((prev) => {
-          // 중복 방지: 이미 같은 값이 있는지 확인
-          if (prev.steps.includes(trimmed)) {
-            isProcessingStep.current = false;
-            return prev;
-          }
-          return {
-            ...prev,
-            steps: [...prev.steps, trimmed],
-          };
-        });
+        // 값이 있으면 확정 리스트에 추가 (중복 허용)
+        setCurrentVariant((prev) => ({
+          ...prev,
+          steps: [...prev.steps, trimmed],
+        }));
         setCurrentStepInput('');
         
         // 다음 입력창에 포커스

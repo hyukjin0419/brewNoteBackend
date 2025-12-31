@@ -41,6 +41,9 @@ public class RecipeController {
         return ResponseEntity.ok(recipeService.getFormData());
     }
 
+    //TODO update 기능이 추가되어야 할 것 같음!
+//    public ResponseEntity<Void> updateRecipe(@RequestBody)
+
     //======================= ALL ========================//
     //등록된 레시피 전체 조회 (검색 기능 추가해야 함)
     @GetMapping("/search/recipes")
