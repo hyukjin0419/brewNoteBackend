@@ -46,7 +46,7 @@ public class Recipe extends BaseEntity {
     private String title;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private RecipeCategory category;
 
     private String hotThumbnailUrl;
