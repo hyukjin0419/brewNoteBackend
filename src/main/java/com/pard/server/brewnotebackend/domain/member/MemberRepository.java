@@ -15,6 +15,7 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
     boolean existsByEmail(String email);
 
     Optional<Member> findByRole(MemberRoleType roleType);
+    Optional<Member> findByEmail(String email);
 
     @Query("""
         select new com.pard.server.brewnotebackend.domain.member.OwnerDetailResponse(

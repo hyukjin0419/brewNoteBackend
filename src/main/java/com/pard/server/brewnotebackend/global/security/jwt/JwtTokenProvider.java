@@ -2,6 +2,7 @@ package com.pard.server.brewnotebackend.global.security.jwt;
 
 import com.pard.server.brewnotebackend.domain.member.MemberRoleType;
 import com.pard.server.brewnotebackend.global.security.currentUser.CustomUserDetails;
+import com.pard.server.brewnotebackend.global.utils.UuidUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -20,6 +21,7 @@ import java.security.Key;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.UUID;
 
 @Slf4j
 @Component
@@ -43,9 +45,8 @@ public class JwtTokenProvider {
         log.info("Loaded JWT_SECRET: {}...", secretKeyString.substring(0, 8));
     }
 
-    public String generateAccessToken(Long memberId, String userName, MemberRoleType role) {
+    public String generateAccessToken(UUID memberId, MemberRoleType role) {
         Claims claims = Jwts.claims().setSubject(memberId.toString());
-        claims.put("userName", userName);
         claims.put("role",role.name());
 
         return Jwts.builder()
@@ -56,20 +57,20 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public TokenWithExpiry generateRefreshToken(Long memberId) {
-        long now = System.currentTimeMillis();
-        Date expiry = new Date(now + refreshTokenValidTime);
-
-        String token = Jwts.builder()
-                .setSubject(memberId.toString())
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + refreshTokenValidTime))
-                .signWith(secretKey, SignatureAlgorithm.HS256)
-                .compact();
-
-        return TokenWithExpiry.of(token,
-                expiry.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
-    }
+//    public TokenWithExpiry generateRefreshToken(Long memberId) {
+//        long now = System.currentTimeMillis();
+//        Date expiry = new Date(now + refreshTokenValidTime);
+//
+//        String token = Jwts.builder()
+//                .setSubject(memberId.toString())
+//                .setIssuedAt(new Date())
+//                .setExpiration(new Date(System.currentTimeMillis() + refreshTokenValidTime))
+//                .signWith(secretKey, SignatureAlgorithm.HS256)
+//                .compact();
+//
+//        return TokenWithExpiry.of(token,
+//                expiry.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime());
+//    }
 
     public boolean validateToken(String token) {
         try {
@@ -81,12 +82,12 @@ public class JwtTokenProvider {
         }
     }
 
-    public Long getMemberId(String token) {
+    public UUID getMemberId(String token) {
         String subject = Jwts.parserBuilder().setSigningKey(secretKey).build()
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();
-        return Long.parseLong(subject);
+        return UuidUtils.parse(subject);
     }
 
 
@@ -111,13 +112,13 @@ public class JwtTokenProvider {
                 .parseClaimsJws(token)
                 .getBody();
     }
-    public long getRemainingExpiration(String token) {
-        Claims claims = getClaims(token);
-        return claims.getExpiration().toInstant().getEpochSecond() - Instant.now().getEpochSecond();
-    }
+//    public long getRemainingExpiration(String token) {
+//        Claims claims = getClaims(token);
+//        return claims.getExpiration().toInstant().getEpochSecond() - Instant.now().getEpochSecond();
+//    }
     //--------------------------------CustomUser 객체 사용 해야 합니다--------------------------------//
     public Authentication getAuthentication(String token) {
-        Long memberId = getMemberId(token);
+        UUID memberId = getMemberId(token);
         String username = getUserName(token);
         String role = getRole(token);
         CustomUserDetails userDetails = CustomUserDetails.ofJwt(memberId, username, role);

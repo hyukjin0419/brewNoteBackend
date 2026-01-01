@@ -1,8 +1,14 @@
 package com.pard.server.brewnotebackend.global.security;
 
+import com.pard.server.brewnotebackend.domain.recipe.RecipeCreateRequest;
+import com.pard.server.brewnotebackend.global.security.jwt.login.LoginRequest;
+import com.pard.server.brewnotebackend.global.security.jwt.login.LoginResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -14,6 +20,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+        System.out.println("login 요청 객체 : " + request.getEmail());
+        System.out.println("login 요청 객체 : " + request.getPassword());
+
+        return ResponseEntity.ok(authService.login(request));
+    }
 
 }
 
