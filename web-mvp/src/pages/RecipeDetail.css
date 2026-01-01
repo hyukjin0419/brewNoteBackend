@@ -194,7 +194,7 @@
   color: #e74c3c;
 }
 
-/* 수정 모드 스타일 */
+/* ==================== 헤더 액션 버튼 ==================== */
 .detail-header-actions {
   display: flex;
   justify-content: space-between;
@@ -202,22 +202,46 @@
   margin-bottom: 20px;
 }
 
-.edit-button {
+.header-action-buttons {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* 헤더 버튼 공통 스타일 */
+.edit-button,
+.header-delete-button {
   padding: 10px 20px;
-  background-color: #4a90e2;
-  color: white;
   border: none;
   border-radius: 6px;
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s;
+  box-sizing: border-box;
+  display: inline-block;
+  line-height: 1.5;
+}
+
+.edit-button {
+  background-color: #4a90e2;
+  color: white;
 }
 
 .edit-button:hover {
   background-color: #357abd;
 }
 
+.header-delete-button {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.header-delete-button:hover {
+  background-color: #c0392b;
+}
+
+/* ==================== 폼 스타일 ==================== */
 .recipe-form {
   display: flex;
   flex-direction: column;
@@ -277,54 +301,14 @@
   object-fit: contain;
 }
 
+/* ==================== 별칭 및 단계 입력 ==================== */
 .alias-section {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.confirmed-alias-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 12px;
-  background-color: #f0f7ff;
-  border: 1px solid #4a90e2;
-  border-radius: 6px;
-  gap: 8px;
-}
-
-.confirmed-alias-item span {
-  color: #333;
-  font-size: 14px;
-  flex: 1;
-}
-
-.alias-input-item {
-  margin-top: 4px;
-}
-
-.alias-input-item input {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #ddd;
-  border-radius: 6px;
-  font-size: 16px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.alias-input-item input:focus {
-  border-color: #4a90e2;
-}
-
-.current-variant {
-  background-color: #f8f9fa;
-  padding: 20px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-
+.confirmed-alias-item,
 .confirmed-step-item {
   display: flex;
   justify-content: space-between;
@@ -337,16 +321,19 @@
   margin-bottom: 8px;
 }
 
+.confirmed-alias-item span,
 .confirmed-step-item span {
   color: #333;
   font-size: 14px;
   flex: 1;
 }
 
+.alias-input-item,
 .step-input-item {
   margin-top: 4px;
 }
 
+.alias-input-item input,
 .step-input-item input {
   width: 100%;
   padding: 12px 16px;
@@ -357,23 +344,17 @@
   transition: border-color 0.2s;
 }
 
+.alias-input-item input:focus,
 .step-input-item input:focus {
   border-color: #4a90e2;
 }
 
-.remove-button {
-  padding: 6px 12px;
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
-  transition: background-color 0.2s;
-}
-
-.remove-button:hover {
-  background-color: #c0392b;
+/* ==================== 옵션 관리 ==================== */
+.current-variant {
+  background-color: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
 }
 
 .variant-action-buttons {
@@ -478,7 +459,8 @@
   cursor: not-allowed;
 }
 
-.delete-button {
+/* 작은 삭제 버튼 (variant-item 내부용) */
+.variant-item-actions .delete-button {
   padding: 8px 16px;
   background-color: #e74c3c;
   color: white;
@@ -489,11 +471,11 @@
   transition: background-color 0.2s;
 }
 
-.delete-button:hover:not(:disabled) {
+.variant-item-actions .delete-button:hover:not(:disabled) {
   background-color: #c0392b;
 }
 
-.delete-button:disabled {
+.variant-item-actions .delete-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -504,13 +486,37 @@
   margin-left: 8px;
 }
 
+/* ==================== 폼 액션 버튼 ==================== */
 .form-actions {
   display: flex;
   gap: 12px;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   margin-top: 30px;
   padding-top: 20px;
   border-top: 2px solid #f0f0f0;
+}
+
+.form-action-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+/* 폼 하단 삭제 버튼 */
+.form-actions .delete-button {
+  padding: 12px 24px;
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.form-actions .delete-button:hover {
+  background-color: #c0392b;
 }
 
 .cancel-button {
@@ -549,4 +555,3 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
-

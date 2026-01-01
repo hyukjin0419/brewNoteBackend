@@ -72,3 +72,8 @@ export const updateRecipe = async (recipeId: string, request: RecipeUpdateReques
   await apiClient.put(`/recipe/admin/recipe/${recipeId}`, request);
 };
 
+// 레시피 삭제
+export const deleteRecipe = async (recipeId: string): Promise<void> => {
+  await apiClient.delete(`/recipe/admin/recipe/${recipeId}`);
+};
+
