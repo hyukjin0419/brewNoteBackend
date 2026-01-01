@@ -9,4 +9,5 @@ public interface RecipeStepRepository extends JpaRepository<RecipeStep, Long> {
 
     List<RecipeStep> findByVariantIdInOrderByStepOrderAsc(List<Long> variantIds);
 
+    void deleteAllByVariantIdIn(List<Long> variantIds);
 }

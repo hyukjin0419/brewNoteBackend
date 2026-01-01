@@ -4,6 +4,7 @@ import type {
   RecipeDetailResponse,
   RecipeFormDataResponse,
   RecipeCreateRequest,
+  RecipeUpdateRequest,
 } from '../types/recipe';
 
 const baseURL = import.meta.env.VITE_API_URL || '/api';
@@ -40,6 +41,18 @@ export const searchRecipes = async (keyword: string): Promise<RecipeSearchRespon
 // 레시피 상세 조회
 export const getRecipeDetail = async (recipeId: string): Promise<RecipeDetailResponse> => {
   const { data } = await apiClient.get<RecipeDetailResponse>(`/recipe/${recipeId}`);
+  
+  // API 응답에서 isDefault 값 확인
+  console.log('=== API 응답 확인 ===');
+  console.log('전체 응답:', data);
+  console.log('variants:', data.variants);
+  console.log('각 variant의 isDefault:', data.variants.map(v => ({
+    type: v.type,
+    isDefault: v.isDefault,
+    isDefaultType: typeof v.isDefault,
+    variantId: v.variantId,
+  })));
+  
   return data;
 };
 
@@ -52,5 +65,10 @@ export const getRecipeFormData = async (): Promise<RecipeFormDataResponse> => {
 // 레시피 생성
 export const createRecipe = async (request: RecipeCreateRequest): Promise<void> => {
   await apiClient.post('/recipe/admin/recipe', request);
+};
+
+// 레시피 수정
+export const updateRecipe = async (recipeId: string, request: RecipeUpdateRequest): Promise<void> => {
+  await apiClient.put(`/recipe/admin/recipe/${recipeId}`, request);
 };
 

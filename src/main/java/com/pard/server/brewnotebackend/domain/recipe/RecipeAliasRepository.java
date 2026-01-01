@@ -9,4 +9,8 @@ import java.util.UUID;
 @Repository
 public interface RecipeAliasRepository extends JpaRepository<RecipeAlias, Long> {
     List<RecipeAlias> findByRecipeIdIn(List<UUID> recipeIds);
+
+    List<RecipeAlias> findByRecipeId(UUID recipeId);
+
+    void deleteAllByRecipeId(UUID recipeId);
 }

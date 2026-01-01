@@ -29,13 +29,14 @@ export interface RecipeDetailResponse {
   category: string;
   hotThumbnailUrl?: string;
   iceThumbnailUrl?: string;
+  alias?: string[];
   variants: VariantResponse[];
 }
 
 export interface VariantResponse {
   variantId: number;
   type: RecipeOptionType;
-  isDefault: boolean;
+  default: boolean; // API 응답에서 default로 오므로
   steps: string[];
 }
 
@@ -70,5 +71,15 @@ export interface RecipeEnumOption {
 export interface FranchiseResponse {
   franchiseId: string;
   name: string;
+}
+
+// 레시피 수정 요청
+export interface RecipeUpdateRequest {
+  title: string;
+  category: string;
+  hotThumbnailUrl?: string;
+  iceThumbnailUrl?: string;
+  alias: string[];
+  variants: VariantRequest[];
 }
 

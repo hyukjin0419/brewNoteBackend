@@ -8,6 +8,8 @@ public interface RecipeService {
 
     RecipeFormDataResponse getFormData();
 
+    void updateRecipe(String recipeId, RecipeUpdateRequest request);
+
     List<RecipeSearchResponse> search(String keyword);
 
     List<RecipeDetailResponse> getRecipes(RecipeDetailRequest request);
