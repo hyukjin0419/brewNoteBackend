@@ -48,8 +48,8 @@ export const getRecipeDetail = async (recipeId: string): Promise<RecipeDetailRes
   console.log('variants:', data.variants);
   console.log('각 variant의 isDefault:', data.variants.map(v => ({
     type: v.type,
-    isDefault: v.isDefault,
-    isDefaultType: typeof v.isDefault,
+    isDefault: v.default,
+    isDefaultType: typeof v.default,
     variantId: v.variantId,
   })));
   
