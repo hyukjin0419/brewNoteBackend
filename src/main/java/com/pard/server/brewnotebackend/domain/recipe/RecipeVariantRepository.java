@@ -9,4 +9,5 @@ public interface RecipeVariantRepository extends JpaRepository<RecipeVariant, Lo
 
     List<RecipeVariant> findByRecipeIdAndIsHiddenFalse(UUID recipeId);
     List<RecipeVariant> findByRecipeIdInAndIsHiddenFalse(List<UUID> recipeIds);
+
 }

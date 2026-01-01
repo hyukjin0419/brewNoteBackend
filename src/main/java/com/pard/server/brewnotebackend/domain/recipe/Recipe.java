@@ -81,7 +81,6 @@ public class Recipe extends BaseEntity {
                 .build();
     }
 
-
     // ----------- 레시피 대표 Img --------------------//
     public String getRepresentativeThumbnail() {
         // 1순위: HOT 이미지가 있으면 반환
@@ -91,4 +90,22 @@ public class Recipe extends BaseEntity {
         // 2순위: HOT이 없으면 ICE 이미지 반환
         return this.iceThumbnailUrl;
     }
+
+    public void updateTitle(String title) {
+        this.title = title;
+        this.titleInitial = HangulUtils.extractInitialSequence(title);
+    }
+
+    public void updateHotThumbnailUrl(String hotThumbnailUrl){
+        this.hotThumbnailUrl = hotThumbnailUrl;
+    }
+
+    public void updateIceThumbnailUrl(String iceThumbnailUrl){
+        this.iceThumbnailUrl = iceThumbnailUrl;
+    }
+
+    public void updateCategory(RecipeCategory category) {
+        this.category = category;
+    }
+
 }

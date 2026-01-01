@@ -57,42 +57,10 @@ public class RecipeServiceImpl implements RecipeService{
         //recipe variant 저장
         validateVariants(request.getVariants());
 
-        for (RecipeCreateRequest.VariantRequest variantRequest : request.getVariants()) {
-            RecipeVariant variant = RecipeVariant.of(recipe.getId(), variantRequest.getOptionType(), variantRequest.isDefault());
-
-            recipeVariantRepository.save(variant);
-
-            List<String> steps = variantRequest.getSteps();
-            if (steps == null || steps.isEmpty()) {
-                throw new BusinessException(ErrorCode.RECIPE_STEP_REQUIRED);
-            }
-
-            List<RecipeStep> recipeSteps = new ArrayList<>();
-            for (int i = 0; i < steps.size(); i++) {
-                recipeSteps.add(
-                        RecipeStep.of(
-                                variant.getId(),
-                                i+1,
-                                steps.get(i)
-                        )
-                );
-            }
-
-            recipeStepRepository.saveAll(recipeSteps);
-        }
+        saveRecipeVariants(recipe, request.getVariants());
 
         //alias 저장
-        List<String> aliasRequest = request.getAlias();
-        if (aliasRequest != null && !aliasRequest.isEmpty()) {
-            List<RecipeAlias> aliases = aliasRequest.stream()
-                    .map(alias -> RecipeAlias.of(
-                            recipe.getId(),
-                            alias
-                    ))
-                    .toList();
-
-            recipeAliasRepository.saveAll(aliases);
-        }
+        saveRecipeAlias(recipe, request.getAlias());
     }
 
     //recipe variant 유효성 검증
@@ -105,7 +73,6 @@ public class RecipeServiceImpl implements RecipeService{
         // 1. variantType 중복 방지
         Set<RecipeOptionType> types = new HashSet<>();
         for (RecipeCreateRequest.VariantRequest variant : variants) {
-            System.out.println("입력된 타입 : " + variant.getOptionType());
             if (!types.add(variant.getOptionType())) {
                 throw new BusinessException(ErrorCode.DUPLICATED_VARIANT_TYPE);
             }
@@ -125,6 +92,7 @@ public class RecipeServiceImpl implements RecipeService{
     //그리고 이거를 작성할 수 있는 화면도 만들어줘야 한다 -> 이건 커서가
     //프론트로 넘겨줄 때 프렌차이즈 + 카테고리 선택할 수 있게 넘겨주어야 한다.
     @Override
+    @Transactional(readOnly = true)
     public RecipeFormDataResponse getFormData() {
 
         List<RecipeEnumOptionResponse> recipeEnumOptionResponses =
@@ -137,11 +105,97 @@ public class RecipeServiceImpl implements RecipeService{
         return RecipeFormDataResponse.from(recipeEnumOptionResponses, franchiseResponses);
     }
 
+    @Override
+    public void updateRecipe(String recipeId, RecipeUpdateRequest request) {
+        UUID recipeID = UuidUtils.parse(recipeId);
+
+        //TODO 나중에 파라미터로 받와야하 함!, @CurrentUser 사용하기:)
+        UUID creatorId = memberRepository.findByRole(MemberRoleType.ADMIN)
+                .orElseThrow(() -> new EntityNotFoundException("ADMIN을 찾을 수 없습니다.")).getId();
+
+        Recipe recipe = recipeRepository.findById(recipeID)
+                .orElseThrow(() -> new EntityNotFoundException("수정하고자 하는 레시피를 찾을 수 없습니다;"));
+
+        if (request.getTitle() != null) {
+            recipe.updateTitle(request.getTitle());
+        }
+        if (request.getCategory() != null) {
+            recipe.updateCategory(RecipeCategory.valueOf(request.getCategory()));
+        }
+        if (request.getHotThumbnailUrl() != null) {
+            recipe.updateHotThumbnailUrl(request.getHotThumbnailUrl());
+        }
+        if (request.getIceThumbnailUrl() != null) {
+            recipe.updateIceThumbnailUrl(request.getIceThumbnailUrl());
+        }
+
+        if (request.getVariants() != null) {
+            validateVariants(request.getVariants());
+
+            List<RecipeVariant> existingVariants = recipeVariantRepository.findByRecipeIdAndIsHiddenFalse(recipeID);
+
+            List<Long> variantsIds = existingVariants.stream()
+                    .map(RecipeVariant::getId)
+                    .toList();
+
+            recipeStepRepository.deleteAllByVariantIdIn(variantsIds);
+            recipeVariantRepository.deleteAll(existingVariants);
+
+            saveRecipeVariants(recipe, request.getVariants());
+        }
+
+        if (request.getAlias() != null) {
+            recipeAliasRepository.deleteAllByRecipeId(recipe.getId());
+            saveRecipeAlias(recipe, request.getAlias());
+        }
+    }
+
+    private void saveRecipeAlias(Recipe recipe, List<String> aliasInput) {
+        if (aliasInput != null && !aliasInput.isEmpty()) {
+            List<RecipeAlias> aliases = aliasInput.stream()
+                    .map(alias -> RecipeAlias.of(
+                            recipe.getId(),
+                            alias
+                    ))
+                    .toList();
+
+            recipeAliasRepository.saveAll(aliases);
+        }
+    }
+
+    private void saveRecipeVariants(Recipe recipe, List<RecipeCreateRequest.VariantRequest> variants) {
+        for (RecipeCreateRequest.VariantRequest variantRequest : variants) {
+            List<String> steps = variantRequest.getSteps();
+            if (steps == null || steps.isEmpty()) {
+                throw new BusinessException(ErrorCode.RECIPE_STEP_REQUIRED);
+            }
+
+            RecipeVariant variant = RecipeVariant.of(recipe.getId(), variantRequest.getOptionType(), variantRequest.isDefault());
+            recipeVariantRepository.save(variant);
+
+            List<RecipeStep> recipeSteps = new ArrayList<>();
+            for (int i = 0; i < steps.size(); i++) {
+                recipeSteps.add(
+                        RecipeStep.of(
+                                variant.getId(),
+                                i+1,
+                                steps.get(i)
+                        )
+                );
+            }
+
+            recipeStepRepository.saveAll(recipeSteps);
+        }
+    }
+
+
+    //--------------------------------------------------------------------------//
     //검색
     private static final int CANDIDATE_LIMIT = 30;
     private static final int RESULT_LIMIT = 10;
 
     @Override
+    @Transactional(readOnly = true)
     public List<RecipeSearchResponse> search(String keyword) {
         if (keyword == null || keyword.isEmpty()) return List.of();
 
@@ -225,6 +279,7 @@ public class RecipeServiceImpl implements RecipeService{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<RecipeDetailResponse> getRecipes(RecipeDetailRequest request) {
         // 둘 다 없음
         if (request.getCategory() == null && request.getFavorite() == null) {
@@ -313,6 +368,7 @@ public class RecipeServiceImpl implements RecipeService{
     }
 
     @Override
+    @Transactional(readOnly = true)
     public RecipeDetailResponse getRecipeDetail(UUID recipeId) {
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() ->
@@ -347,9 +403,13 @@ public class RecipeServiceImpl implements RecipeService{
                     );
                 }).toList();
 
+        List<String> alias = recipeAliasRepository.findByRecipeId(recipe.getId())
+                .stream().map(RecipeAlias::getAlias).toList();
+
         return RecipeDetailResponse.from(
                 recipe,
-                variantResponses
+                variantResponses,
+                alias
         );
     }
 }

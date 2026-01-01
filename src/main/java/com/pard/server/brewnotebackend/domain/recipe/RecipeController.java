@@ -42,7 +42,11 @@ public class RecipeController {
     }
 
     //TODO update 기능이 추가되어야 할 것 같음!
-//    public ResponseEntity<Void> updateRecipe(@RequestBody)
+    @PutMapping("/admin/recipe/{recipeId}")
+    public ResponseEntity<Void> updateRecipe(@PathVariable String recipeId, @RequestBody RecipeUpdateRequest request) {
+        recipeService.updateRecipe(recipeId, request);
+        return ResponseEntity.ok().build();
+    }
 
     //======================= ALL ========================//
     //등록된 레시피 전체 조회 (검색 기능 추가해야 함)
