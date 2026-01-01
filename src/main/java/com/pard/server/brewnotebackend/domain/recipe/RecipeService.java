@@ -10,6 +10,8 @@ public interface RecipeService {
 
     void updateRecipe(String recipeId, RecipeUpdateRequest request);
 
+    void deleteRecipe(String recipeId);
+
     List<RecipeSearchResponse> search(String keyword);
 
     List<RecipeDetailResponse> getRecipes(RecipeDetailRequest request);

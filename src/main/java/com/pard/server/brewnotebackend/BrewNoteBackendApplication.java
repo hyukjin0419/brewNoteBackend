@@ -11,5 +11,5 @@ public class BrewNoteBackendApplication {
     public static void main(String[] args) {
         SpringApplication.run(BrewNoteBackendApplication.class, args);
     }
-//
+//모든 삭제는 MVP에서 HARD_DELETE
 }

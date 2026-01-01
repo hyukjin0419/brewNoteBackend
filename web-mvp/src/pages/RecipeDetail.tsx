@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getRecipeDetail, updateRecipe, getRecipeFormData } from '../lib/api';
+import { getRecipeDetail, updateRecipe, getRecipeFormData, deleteRecipe } from '../lib/api';
 import type { 
   RecipeDetailResponse, 
   VariantResponse, 
@@ -342,6 +342,26 @@ function RecipeDetail() {
     }
   };
 
+  const handleDelete = async () => {
+    if (!recipeId) return;
+    
+    const confirmed = window.confirm('정말 이 레시피를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.');
+    if (!confirmed) return;
+
+    try {
+      await deleteRecipe(recipeId);
+      alert('레시피가 성공적으로 삭제되었습니다.');
+      navigate('/');
+    } catch (error: any) {
+      console.error('레시피 삭제 오류:', error);
+      const errorMessage = error?.response?.data?.message || 
+                          error?.response?.data?.error || 
+                          error?.message || 
+                          '레시피 삭제에 실패했습니다.';
+      alert(`레시피 삭제에 실패했습니다.\n${errorMessage}`);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="recipe-detail-page">
@@ -368,11 +388,18 @@ function RecipeDetail() {
           <button className="back-button" onClick={() => navigate('/')}>
             ← 검색으로 돌아가기
           </button>
-          {!isEditMode && (
-            <button className="edit-button" onClick={handleEditClick}>
-              수정하기
-            </button>
-          )}
+          <div className="header-action-buttons">
+            {!isEditMode && (
+              <>
+                <button className="edit-button" onClick={handleEditClick}>
+                  수정하기
+                </button>
+                <button className="delete-button header-delete-button" onClick={handleDelete}>
+                  삭제하기
+                </button>
+              </>
+            )}
+          </div>
         </div>
 
         {!isEditMode ? (
@@ -661,12 +688,17 @@ function RecipeDetail() {
             </div>
 
             <div className="form-actions">
-              <button type="button" onClick={handleCancelEdit} className="cancel-button">
-                취소
+              <button type="button" onClick={handleDelete} className="delete-button">
+                삭제하기
               </button>
-              <button type="submit" disabled={isSubmitting} className="submit-button">
-                {isSubmitting ? '수정 중...' : '레시피 수정'}
-              </button>
+              <div className="form-action-buttons">
+                <button type="button" onClick={handleCancelEdit} className="cancel-button">
+                  취소
+                </button>
+                <button type="submit" disabled={isSubmitting} className="submit-button">
+                  {isSubmitting ? '수정 중...' : '레시피 수정'}
+                </button>
+              </div>
             </div>
           </form>
         )}

@@ -107,13 +107,13 @@ public class RecipeServiceImpl implements RecipeService{
 
     @Override
     public void updateRecipe(String recipeId, RecipeUpdateRequest request) {
-        UUID recipeID = UuidUtils.parse(recipeId);
+        UUID recipeUUID = UuidUtils.parse(recipeId);
 
         //TODO 나중에 파라미터로 받와야하 함!, @CurrentUser 사용하기:)
         UUID creatorId = memberRepository.findByRole(MemberRoleType.ADMIN)
                 .orElseThrow(() -> new EntityNotFoundException("ADMIN을 찾을 수 없습니다.")).getId();
 
-        Recipe recipe = recipeRepository.findById(recipeID)
+        Recipe recipe = recipeRepository.findById(recipeUUID)
                 .orElseThrow(() -> new EntityNotFoundException("수정하고자 하는 레시피를 찾을 수 없습니다;"));
 
         if (request.getTitle() != null) {
@@ -132,7 +132,7 @@ public class RecipeServiceImpl implements RecipeService{
         if (request.getVariants() != null) {
             validateVariants(request.getVariants());
 
-            List<RecipeVariant> existingVariants = recipeVariantRepository.findByRecipeIdAndIsHiddenFalse(recipeID);
+            List<RecipeVariant> existingVariants = recipeVariantRepository.findByRecipeIdAndIsHiddenFalse(recipeUUID);
 
             List<Long> variantsIds = existingVariants.stream()
                     .map(RecipeVariant::getId)
@@ -148,6 +148,42 @@ public class RecipeServiceImpl implements RecipeService{
             recipeAliasRepository.deleteAllByRecipeId(recipe.getId());
             saveRecipeAlias(recipe, request.getAlias());
         }
+    }
+
+    @Override
+    public void deleteRecipe(String recipeId) {
+        UUID recipeUUID = UuidUtils.parse(recipeId);
+
+        //TODO 나중에 파라미터로 받와야하 함!, @CurrentUser 사용하기:)
+        UUID creatorId = memberRepository.findByRole(MemberRoleType.ADMIN)
+                .orElseThrow(() -> new EntityNotFoundException("ADMIN을 찾을 수 없습니다.")).getId();
+
+        Recipe recipe = recipeRepository.findById(recipeUUID)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("삭제하려는 레시피를 찾을 수 없습니다.")
+                );
+
+        //Variant 조회
+        List<RecipeVariant> variants =
+                recipeVariantRepository.findByRecipeIdAndIsHiddenFalse(recipeUUID);
+
+        if (!variants.isEmpty()) {
+            List<Long> variantIds = variants.stream()
+                    .map(RecipeVariant::getId)
+                    .toList();
+
+            //Step 삭제
+            recipeStepRepository.deleteAllByVariantIdIn(variantIds);
+
+            //Variant 삭제
+            recipeVariantRepository.deleteAll(variants);
+        }
+
+        //Alias 삭제
+        recipeAliasRepository.deleteAllByRecipeId(recipeUUID);
+
+        //Recipe 삭제 (hard delete)
+        recipeRepository.delete(recipe);
     }
 
     private void saveRecipeAlias(Recipe recipe, List<String> aliasInput) {

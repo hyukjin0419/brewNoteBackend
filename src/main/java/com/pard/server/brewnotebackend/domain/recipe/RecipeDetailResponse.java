@@ -68,7 +68,6 @@ public class RecipeDetailResponse {
                 boolean isDefault,
                 List<String> steps
         ) {
-            System.out.println("여기 값 확인좀 !! : " + isDefault);
             return RecipeDetailResponse.VariantResponse.builder()
                     .variantId(variantId)
                     .type(type)
