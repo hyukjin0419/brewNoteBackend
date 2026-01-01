@@ -7,6 +7,7 @@ import type {
   RecipeUpdateRequest,
 } from '../types/recipe';
 import type { LoginRequest, LoginResponse } from '../types/auth';
+import type { CreateOwnerRequest, FranchiseResponse, OwnerDetailResponse, PageResponse } from '../types/member';
 
 const baseURL = import.meta.env.VITE_API_URL || '/api';
 
@@ -112,5 +113,24 @@ export const login = async (request: LoginRequest): Promise<LoginResponse> => {
   // 응답 body가 없거나 토큰이 없으면 에러
   // 실제로는 백엔드가 LoginResponse를 반환해야 함
   throw new Error('로그인 응답에 토큰이 없습니다. 백엔드가 LoginResponse를 반환하는지 확인해주세요.');
+};
+
+// 프랜차이즈 목록 조회
+export const getFranchises = async (): Promise<FranchiseResponse[]> => {
+  const { data } = await apiClient.get<FranchiseResponse[]>('/admin/franchise');
+  return data;
+};
+
+// 점주 목록 조회
+export const getOwners = async (page: number = 0, size: number = 20): Promise<PageResponse<OwnerDetailResponse>> => {
+  const { data } = await apiClient.get<PageResponse<OwnerDetailResponse>>('/members/admin/owners', {
+    params: { page, size },
+  });
+  return data;
+};
+
+// 점주 생성
+export const createOwner = async (request: CreateOwnerRequest): Promise<void> => {
+  await apiClient.post('/members/admin/owners', request);
 };
 

@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Member", description = "멤버관련 (가입 포함) API")
@@ -20,10 +21,9 @@ public class MemberController {
     private final MemberService memberService;
 
     //======================= ADMIN ========================//
-    //TODO: ADMIN APIs 권한 추가
-    //  @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/admin/owners")
-    //Onwer은 Create시 동시에 활성화 된다.
+    //Onwer은 Create시 동시에 활성화 된다. -> 이것도 이메일 발송 시켜서 직접 입력하는 형식으로 하자!!
     public ResponseEntity<Void> createOwner(
             @RequestBody CreateOwnerRequest request
     ) {

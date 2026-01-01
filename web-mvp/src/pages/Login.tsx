@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../lib/api';
-import { setToken } from '../utils/auth';
+import { setToken, setRole } from '../utils/auth';
 import './Login.css';
 
 function Login() {
@@ -30,6 +30,9 @@ function Login() {
       }
       
       setToken(response.accessToken);
+      if (response.role) {
+        setRole(response.role);
+      }
       // 페이지 새로고침하여 App의 인증 상태 업데이트
       window.location.href = '/';
     } catch (err: any) {

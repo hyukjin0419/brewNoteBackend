@@ -32,7 +32,7 @@ public class MemberServiceImpl implements MemberService{
     public void createOwnerWithCafe(CreateOwnerRequest request) {
         validateDuplicateMember(request.getEmail());
 
-        String tempPassword = PasswordGenerator.generate();
+        String tempPassword = "1234";
         String encodedPassword = passwordEncoder.encode(tempPassword);
 
         Member owner = request.toMemberEntity(encodedPassword);

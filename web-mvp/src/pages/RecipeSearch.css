@@ -39,6 +39,22 @@
   background-color: #357abd;
 }
 
+.owner-management-button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.owner-management-button:hover {
+  background-color: #218838;
+}
+
 .logout-button {
   background-color: #e74c3c;
   color: white;

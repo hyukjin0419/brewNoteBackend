@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import RecipeSearch from './pages/RecipeSearch';
 import RecipeDetail from './pages/RecipeDetail';
 import RecipeCreate from './pages/RecipeCreate';
+import OwnerManagement from './pages/OwnerManagement';
 import Login from './pages/Login';
 import { isAuthenticated } from './utils/auth';
 import './App.css';
@@ -56,6 +57,10 @@ function App() {
         <Route 
           path="/recipes/create" 
           element={authenticated ? <RecipeCreate /> : <Navigate to="/login" replace />} 
+        />
+        <Route 
+          path="/owners" 
+          element={authenticated ? <OwnerManagement /> : <Navigate to="/login" replace />} 
         />
       </Routes>
     </div>
