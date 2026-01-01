@@ -139,7 +139,7 @@ function RecipeDetail() {
         alias: recipe.alias || [],
         variants: recipe.variants.map(v => ({
           optionType: v.type,
-          isDefault: v.isDefault,
+          isDefault: v.default,
           steps: v.steps,
         })),
       });
@@ -418,7 +418,7 @@ function RecipeDetail() {
                     onClick={() => handleVariantClick(variant)}
                   >
                     {variant.type}
-                    {variant.isDefault && <span className="default-badge">기본</span>}
+                    {variant.default && <span className="default-badge">기본</span>}
                   </button>
                 ))}
               </div>
