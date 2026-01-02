@@ -39,19 +39,19 @@ public class MemberController {
                     direction = Sort.Direction.DESC
             ) Pageable pageable
     ) {
-        return ResponseEntity.ok(memberService.getMemberOwners(pageable));
+        return ResponseEntity.ok(memberService.getOwners(pageable));
     }
 
     @GetMapping("/admin/owners/{ownerId}")
     public ResponseEntity<OwnerDetailResponse> getOwner(@PathVariable String ownerId){
-        return ResponseEntity.ok(memberService.getMemberOwner(ownerId));
+        return ResponseEntity.ok(memberService.getOwner(ownerId));
     }
 
-    //단일 조회 먼저 해야지
-//    @PutMapping("/admin/onwers/{ownerId}")
-//    public ResponseEntity<Void> updateOwner(
-//            @RequestBody UpdateOwnerRequest
-//    )
+    @PutMapping("/admin/member/{memberId}")
+    public ResponseEntity<Void> updateMember(@PathVariable String memberId, @RequestBody MemberUpdateRequest request) {
+        memberService.updateMember(memberId, request);
+        return ResponseEntity.ok().build();
+    }
 
 
     //======================= OWNER ========================//

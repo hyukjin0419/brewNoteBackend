@@ -33,7 +33,7 @@ public class MemberServiceImpl implements MemberService{
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    @Transactional()
+    @Transactional
     //owner이 생성될때 owner의 카페도 같이 생성되어야 한다.
     public void createOwnerWithCafe(CreateOwnerRequest request) {
         validateDuplicateMember(request.getEmail());
@@ -58,17 +58,17 @@ public class MemberServiceImpl implements MemberService{
     }
 
     @Override
-    public Page<OwnerSummaryResponse> getMemberOwners(Pageable pageable) {
+    public Page<OwnerSummaryResponse> getOwners(Pageable pageable) {
 
         return memberRepository.findOwnerDetailsWithRepresentativeCafe(MemberRoleType.USER, CafeMemberRoleType.OWNER, pageable);
     }
 
     @Override
-    public OwnerDetailResponse getMemberOwner(String ownerId) {
+    public OwnerDetailResponse getOwner(String ownerId) {
         UUID ownerUuid = UuidUtils.parse(ownerId);
 
         Member member = memberRepository.findById(ownerUuid)
-                .orElseThrow(() -> new EntityNotFoundException("OWNER을 찾을 수 업습니다."));
+                .orElseThrow(() -> new EntityNotFoundException("OWNER을 찾을 수 없습니다."));
 
         List<CafeMember> cafeMembers = cafeMemberRepository.findByMemberId(ownerUuid);
 
@@ -95,6 +95,35 @@ public class MemberServiceImpl implements MemberService{
                         }).filter(Objects::nonNull).toList();
 
         return OwnerDetailResponse.from(member, cafeSummaries);
+    }
+
+    @Override
+    @Transactional
+    public void updateMember(String memberId, MemberUpdateRequest request) {
+        UUID memberUuid = UuidUtils.parse(memberId);
+
+        Member member = memberRepository.findById(memberUuid)
+                .orElseThrow(() -> new EntityNotFoundException("Member을 찾을 수 없습니다."));
+
+        if(request.getEmail() != null) {
+            member.updateEmail(request.getEmail());
+        }
+
+        if(request.getName() != null) {
+            member.updateName(request.getName());
+        }
+
+        if (request.getPhoneNumber() != null) {
+            member.updatePhoneNumber(request.getPhoneNumber());
+        }
+
+        if (request.getStatus() != null) {
+            if (MemberStatus.valueOf(request.getStatus()) == MemberStatus.ACTIVE) {
+                member.activate();
+            } else {
+                member.deactivate();
+            }
+        }
     }
 }
 

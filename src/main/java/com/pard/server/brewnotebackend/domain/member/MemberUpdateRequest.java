@@ -14,5 +14,5 @@ public class MemberUpdateRequest {
     private String email;
     private String name;
     private String phoneNumber;
-    //cafe랑
+    private String status;
 }

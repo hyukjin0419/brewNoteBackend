@@ -91,19 +91,23 @@ public class Member extends BaseEntity {
      */
 
     // 비지니스 로직은 필요할 때 제대로 작성! --- Business Logic ---
-//    public void updateInfo(String nickname){
-//        this.nickname = nickname;
-//    }
-//
-//    public void leave() {
-//        this.status = MemberStatus.LEAVE;
-//    }
-//
-//    public void vacationStart() {
-//        this.status = MemberStatus.VACATION;
-//    }
-//
-//    public void comeBack() {
-//        this.status = MemberStatus.ACTIVE;
-//    }
+    public void updateEmail(String email){
+        this.email = email;
+    }
+
+    public void updateName(String name){
+        this.name = name;
+    }
+
+    public void updatePhoneNumber(String phoneNumber){
+        this.phoneNumber = phoneNumber;
+    }
+
+    public void activate() {
+        this.status = MemberStatus.ACTIVE;
+    }
+
+    public void deactivate() {
+        this.status = MemberStatus.INACTIVE;
+    }
 }
