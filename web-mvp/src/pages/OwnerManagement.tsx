@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getOwners, getFranchises, createOwner } from '../lib/api';
-import type { OwnerDetailResponse, FranchiseResponse, CreateOwnerRequest } from '../types/member';
+import type { OwnerSummaryResponse, FranchiseResponse, CreateOwnerRequest } from '../types/member';
 import './OwnerManagement.css';
 
 function OwnerManagement() {
   const navigate = useNavigate();
-  const [owners, setOwners] = useState<OwnerDetailResponse[]>([]);
+  const [owners, setOwners] = useState<OwnerSummaryResponse[]>([]);
   const [franchises, setFranchises] = useState<FranchiseResponse[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingFranchises, setIsLoadingFranchises] = useState(false);
@@ -104,10 +104,10 @@ function OwnerManagement() {
   return (
     <div className="owner-management-page">
       <div className="management-container">
+        <button className="back-button" onClick={() => navigate('/')}>
+          ← 검색으로 돌아가기
+        </button>
         <div className="management-header">
-          <button className="back-button" onClick={() => navigate('/')}>
-            ← 검색으로 돌아가기
-          </button>
           <h1>점주 관리</h1>
           <button 
             className="create-owner-button" 
@@ -242,7 +242,11 @@ function OwnerManagement() {
                   </thead>
                   <tbody>
                     {owners.map((owner) => (
-                      <tr key={owner.id}>
+                      <tr 
+                        key={owner.id}
+                        className="owner-row"
+                        onClick={() => navigate(`/owners/${owner.id}`)}
+                      >
                         <td>{owner.email}</td>
                         <td>{owner.name}</td>
                         <td>{owner.phoneNumber}</td>

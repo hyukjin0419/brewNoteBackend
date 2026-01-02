@@ -7,7 +7,7 @@ import type {
   RecipeUpdateRequest,
 } from '../types/recipe';
 import type { LoginRequest, LoginResponse } from '../types/auth';
-import type { CreateOwnerRequest, FranchiseResponse, OwnerDetailResponse, PageResponse } from '../types/member';
+import type { CreateOwnerRequest, FranchiseResponse, OwnerSummaryResponse, OwnerDetailResponse, PageResponse } from '../types/member';
 
 const baseURL = import.meta.env.VITE_API_URL || '/api';
 
@@ -122,10 +122,16 @@ export const getFranchises = async (): Promise<FranchiseResponse[]> => {
 };
 
 // 점주 목록 조회
-export const getOwners = async (page: number = 0, size: number = 20): Promise<PageResponse<OwnerDetailResponse>> => {
-  const { data } = await apiClient.get<PageResponse<OwnerDetailResponse>>('/members/admin/owners', {
+export const getOwners = async (page: number = 0, size: number = 20): Promise<PageResponse<OwnerSummaryResponse>> => {
+  const { data } = await apiClient.get<PageResponse<OwnerSummaryResponse>>('/members/admin/owners', {
     params: { page, size },
   });
+  return data;
+};
+
+// 점주 상세 조회
+export const getOwner = async (ownerId: string): Promise<OwnerDetailResponse> => {
+  const { data } = await apiClient.get<OwnerDetailResponse>(`/members/admin/owners/${ownerId}`);
   return data;
 };
 

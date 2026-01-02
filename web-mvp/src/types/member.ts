@@ -14,7 +14,7 @@ export interface FranchiseResponse {
   name: string;
 }
 
-export interface OwnerDetailResponse {
+export interface OwnerSummaryResponse {
   id: string;
   email: string;
   name: string;
@@ -22,6 +22,22 @@ export interface OwnerDetailResponse {
   status: string;
   representativeCafeId: string;
   representativeCafe: string;
+}
+
+export interface OwnerDetailResponse {
+  id: string;
+  email: string;
+  name: string;
+  phoneNumber: string;
+  status: string;
+  cafeSummaries: CafeSummaryResponse[];
+}
+
+export interface CafeSummaryResponse {
+  cafeId: string;
+  cafeName: string;
+  status: string;
+  cafeAddress: string;
 }
 
 export interface PageResponse<T> {

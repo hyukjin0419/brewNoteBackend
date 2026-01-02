@@ -11,6 +11,22 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.back-button {
+  background: none;
+  border: none;
+  color: #4a90e2;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px 0;
+  margin-bottom: 20px;
+  transition: color 0.2s;
+  display: block;
+}
+
+.back-button:hover {
+  color: #357abd;
+}
+
 .management-header {
   display: flex;
   justify-content: space-between;
@@ -25,20 +41,7 @@
   font-weight: 600;
   color: #333;
   flex: 1;
-}
-
-.back-button {
-  background: none;
-  border: none;
-  color: #4a90e2;
-  font-size: 16px;
-  cursor: pointer;
-  padding: 8px 0;
-  transition: color 0.2s;
-}
-
-.back-button:hover {
-  color: #357abd;
+  margin: 0;
 }
 
 .create-owner-button {
@@ -209,6 +212,14 @@
 
 .owners-table tbody tr:hover {
   background-color: #f8f9fa;
+}
+
+.owner-row {
+  cursor: pointer;
+}
+
+.owner-row:hover {
+  background-color: #f0f7ff !important;
 }
 
 .owners-table tbody tr:last-child td {
