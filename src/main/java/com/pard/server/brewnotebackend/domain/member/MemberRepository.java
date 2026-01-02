@@ -18,7 +18,7 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
     Optional<Member> findByEmail(String email);
 
     @Query("""
-        select new com.pard.server.brewnotebackend.domain.member.OwnerDetailResponse(
+        select new com.pard.server.brewnotebackend.domain.member.OwnerSummaryResponse(
             m.id,
             m.email,
             m.name,
@@ -40,7 +40,7 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
         where m.role = :memberRole
     """)
     // MVP에서는 제일 처음 생성된 카페
-    Page<OwnerDetailResponse> findOwnerDetailsWithRepresentativeCafe (
+    Page<OwnerSummaryResponse> findOwnerDetailsWithRepresentativeCafe (
             @Param("memberRole") MemberRoleType memberRoleType,
             @Param("cafeMemberRole") CafeMemberRoleType cafeMemberRoleType,
             Pageable pageable

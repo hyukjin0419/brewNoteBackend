@@ -36,7 +36,7 @@ public class RecipeController {
     }
 
     @GetMapping("/admin/recipes/form-data")
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RecipeFormDataResponse> getRecipeFormData() {
         return ResponseEntity.ok(recipeService.getFormData());
     }

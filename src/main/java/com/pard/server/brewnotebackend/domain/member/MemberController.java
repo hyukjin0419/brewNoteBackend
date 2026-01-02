@@ -32,7 +32,7 @@ public class MemberController {
     }
 
     @GetMapping("/admin/owners")
-    public ResponseEntity<Page<OwnerDetailResponse>> getOwners(
+    public ResponseEntity<Page<OwnerSummaryResponse>> getOwners(
             @PageableDefault(
                     size = 20,
                     sort = "createdAt",
@@ -41,6 +41,17 @@ public class MemberController {
     ) {
         return ResponseEntity.ok(memberService.getMemberOwners(pageable));
     }
+
+    @GetMapping("/admin/owners/{ownerId}")
+    public ResponseEntity<OwnerDetailResponse> getOwner(@PathVariable String ownerId){
+        return ResponseEntity.ok(memberService.getMemberOwner(ownerId));
+    }
+
+    //단일 조회 먼저 해야지
+//    @PutMapping("/admin/onwers/{ownerId}")
+//    public ResponseEntity<Void> updateOwner(
+//            @RequestBody UpdateOwnerRequest
+//    )
 
 
     //======================= OWNER ========================//
