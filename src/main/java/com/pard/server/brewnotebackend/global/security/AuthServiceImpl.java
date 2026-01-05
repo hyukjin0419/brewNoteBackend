@@ -29,6 +29,8 @@ public class AuthServiceImpl implements AuthService{
         Member member = memberRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new BusinessException(ErrorCode.AUTHENTICATION_FAILED));
 
+        //TODO active면 로그인, pending이면 비밀번호 재설정, inactive면 로그인 불가
+
         if (!passwordEncoder.matches(request.getPassword(), member.getPassword())) {
             throw new BusinessException(ErrorCode.AUTHENTICATION_FAILED);
         }

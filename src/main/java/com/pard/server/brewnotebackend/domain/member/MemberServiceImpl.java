@@ -35,9 +35,10 @@ public class MemberServiceImpl implements MemberService{
     @Override
     @Transactional
     //owner이 생성될때 owner의 카페도 같이 생성되어야 한다.
-    public void createOwnerWithCafe(CreateOwnerRequest request) {
+    public void createOwnerWithCafe(OwnerCreateRequest request) {
         validateDuplicateMember(request.getEmail());
 
+        //TODO 이메일 도입하면 Pw 빼야 함.
         String tempPassword = "1234";
         String encodedPassword = passwordEncoder.encode(tempPassword);
 
@@ -124,6 +125,27 @@ public class MemberServiceImpl implements MemberService{
                 member.deactivate();
             }
         }
+    }
+
+    // ========================== ONWER ============================== //
+    @Override
+    @Transactional
+    public void createStaff(StaffCreateRequest request) {
+        //TODO 이메일 도입 후 바꿔야 함
+        validateDuplicateMember(request.getEmail());
+
+        String tempPassword = "1234";
+        String encodedPassword = passwordEncoder.encode(tempPassword);
+
+        Member staff = request.toMemberEntity();
+        memberRepository.save(staff);
+
+        UUID cafeUuid = UuidUtils.parse(request.getCafeId());
+        cafeRepository.findById(cafeUuid)
+                .orElseThrow(() -> new EntityNotFoundException("존재하지 않는 카페 Id 입니다."));
+
+        CafeMember cafeMember = CafeMember.createStaff(cafeUuid, staff.getId());
+        cafeMemberRepository.save(cafeMember);
     }
 }
 

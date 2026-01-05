@@ -13,7 +13,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CreateOwnerRequest {
+public class OwnerCreateRequest {
     private String email;
     private String name;
     private String phoneNumber;

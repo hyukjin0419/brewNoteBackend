@@ -25,7 +25,7 @@ public class MemberController {
     @PostMapping("/admin/owners")
     //Onwer은 Create시 동시에 활성화 된다. -> 이것도 이메일 발송 시켜서 직접 입력하는 형식으로 하자!!
     public ResponseEntity<Void> createOwner(
-            @RequestBody CreateOwnerRequest request
+            @RequestBody OwnerCreateRequest request
     ) {
         memberService.createOwnerWithCafe(request);
         return ResponseEntity.ok().build();
@@ -55,6 +55,14 @@ public class MemberController {
 
 
     //======================= OWNER ========================//
+    @PostMapping("/owner/staffs")
+    public ResponseEntity<Void> createStaff(
+            @RequestBody StaffCreateRequest request
+    ) {
+        memberService.createStaff(request);
+        return ResponseEntity.ok().build();
+    }
+
     //======================= STAFF ========================//
 }
 /*
