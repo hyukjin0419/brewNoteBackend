@@ -34,5 +34,9 @@ public class RecipeSearchToken {
         return !hangulPrefix.isEmpty();
     }
 
+    public boolean allowInitialSearch() {
+        // 순수 초성 입력일 때만 true
+        return hasInitial() && !hasHangulPrefix();
+    }
 }
 

@@ -237,7 +237,9 @@ public class RecipeServiceImpl implements RecipeService{
 
         RecipeSearchToken token = RecipeSearchToken.from(keyword);
 
-        if(!token.hasInitial()) return List.of();
+        if (!token.hasInitial() && !token.hasHangulPrefix()) {
+            return List.of();
+        }
 
         List<Recipe> candidates = recipeRepository.searchCandidates(
                 token.getInitialSequence() + "%",
@@ -253,19 +255,6 @@ public class RecipeServiceImpl implements RecipeService{
                 recipeAliasRepository.findByRecipeIdIn(recipeIds).stream()
                         .collect(Collectors.groupingBy(RecipeAlias::getRecipeId));
 
-        aliasMap.forEach((recipeId, aliases) -> {
-            System.out.println("---------------------------------");
-            System.out.println("레시피 ID: " + recipeId);
-            System.out.print("등록된 별칭들: ");
-
-            // 별칭 객체에서 이름만 추출해서 출력
-            List<String> aliasNames = aliases.stream()
-                    .map(RecipeAlias::getAlias) // 혹은 getName() 등 필드명에 맞게 수정
-                    .toList();
-
-            System.out.println(aliasNames);
-        });
-
         List<ScoredRecipe> scored = candidates.stream()
                 .map(recipe -> matchAndScore(recipe, token, aliasMap.getOrDefault(recipe.getId(), List.of())))
                 .filter(ScoredRecipe::isMatched)
@@ -278,7 +267,11 @@ public class RecipeServiceImpl implements RecipeService{
                 .toList();
     }
 
-    private ScoredRecipe matchAndScore(Recipe recipe, RecipeSearchToken token, List<RecipeAlias> aliases) {
+    private ScoredRecipe matchAndScore(
+            Recipe recipe,
+            RecipeSearchToken token,
+            List<RecipeAlias> aliases
+    ) {
         if (recipe.getTitle() == null) return ScoredRecipe.notMatched();
 
         int score = 0;
@@ -287,32 +280,54 @@ public class RecipeServiceImpl implements RecipeService{
         String hangulPrefix = token.getHangulPrefix();
         String inputInitials = token.getInitialSequence();
 
+        boolean titleMatched = false;
+        boolean aliasMatched = false;
+
         // --- title 기준 ---
-        if (recipe.getTitle().equals(raw)) score += 100;
+        if (recipe.getTitle().equals(raw)) {
+            score += 100;
+            titleMatched = true;
+        }
 
-        if(!hangulPrefix.isEmpty() && recipe.getTitle().startsWith(hangulPrefix)) score += 90;
+        if (!hangulPrefix.isEmpty()
+                && recipe.getTitle().startsWith(hangulPrefix)) {
+            score += 90;
+            titleMatched = true;
+        }
 
-        boolean titleInitialMatched = recipe.getTitleInitial().startsWith(inputInitials);
-
-        if(titleInitialMatched) score += 70;
+        boolean titleInitialMatched = false;
+        if (token.allowInitialSearch()) {
+            titleInitialMatched =
+                    recipe.getTitleInitial().startsWith(inputInitials);
+            if (titleInitialMatched) {
+                score += 70;
+                titleMatched = true;
+            }
+        }
 
         // --- alias 기준 ---
-        boolean aliasMatched = aliases.stream().anyMatch(a ->
+        aliasMatched = aliases.stream().anyMatch(a ->
                 a.getAlias().equals(raw)
                         || (!hangulPrefix.isEmpty() && a.getAlias().startsWith(hangulPrefix))
-                        || (a.getAliasInitials() != null
-                        && a.getAliasInitials().startsWith(inputInitials))
+                        || (
+                        token.allowInitialSearch()
+                                && a.getAliasInitials() != null
+                                && a.getAliasInitials().startsWith(inputInitials)
+                )
         );
 
-        if (aliasMatched) score += 40; // title보다 낮게
+        if (aliasMatched) {
+            score += 40;
+        }
 
         // --- 최종 생존 조건 ---
-        if (!titleInitialMatched && !aliasMatched) {
+        if (!titleMatched && !aliasMatched) {
             return ScoredRecipe.notMatched();
         }
 
         return ScoredRecipe.matched(recipe, score);
     }
+
 
     @Override
     @Transactional(readOnly = true)
