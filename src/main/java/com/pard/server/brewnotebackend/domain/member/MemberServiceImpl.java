@@ -130,7 +130,12 @@ public class MemberServiceImpl implements MemberService{
     // ========================== ONWER ============================== //
     @Override
     @Transactional
-    public void createStaff(StaffCreateRequest request) {
+    public void createStaff(UUID ownerId, StaffCreateRequest request) {
+
+        if(!cafeMemberRepository.existsByMemberIdAndCafeIdAndRole(ownerId, UuidUtils.parse(request.getCafeId()),CafeMemberRoleType.OWNER)){
+            throw new IllegalStateException("카페 오너 권한이 없습니다.");
+        };
+
         //TODO 이메일 도입 후 바꿔야 함
         validateDuplicateMember(request.getEmail());
 
@@ -146,6 +151,44 @@ public class MemberServiceImpl implements MemberService{
 
         CafeMember cafeMember = CafeMember.createStaff(cafeUuid, staff.getId());
         cafeMemberRepository.save(cafeMember);
+    }
+
+    @Override
+    public Page<StaffSummaryResponse> getStaffs(UUID ownerId, UUID cafeId, Pageable pageable) {
+
+        //ownerId를 해당 카페의 소속된 cafeMember을 전부 찾아서 해당 카페의 cafeMember을 통해 member정보와 cafemember를 종합해서 받아와야 함
+        if(!cafeMemberRepository.existsByMemberIdAndCafeIdAndRole(ownerId, cafeId,CafeMemberRoleType.OWNER)){
+            throw new IllegalStateException("카페 오너 권한이 없습니다.");
+        };
+
+        Page<CafeMember> cafeMembers = cafeMemberRepository.findByCafeId(cafeId, pageable);
+
+        List<UUID> memberIds = cafeMembers.getContent().stream()
+                .map(CafeMember::getMemberId)
+                .toList();
+
+        Map<UUID, Member> memberMap = memberRepository.findByIdIn(memberIds)
+                .stream().collect(Collectors.toMap(Member::getId, Function.identity()));
+
+        return cafeMembers.map(cm -> {
+            Member member = memberMap.get(cm.getMemberId());
+
+            if (member == null) {
+                throw new IllegalStateException("멤버 정보를 찾을 수 없습니다.");
+            }
+
+            return StaffSummaryResponse.from(
+                    member.getId().toString(),
+                    cm.getCafeId().toString(),
+                    cm.getId().toString(),
+                    cm.getRole(),
+                    cm.getStatus(),
+                    member.getName(),
+                    member.getNickname(),
+                    member.getEmail(),
+                    member.getPhoneNumber()
+            );
+        });
     }
 }
 

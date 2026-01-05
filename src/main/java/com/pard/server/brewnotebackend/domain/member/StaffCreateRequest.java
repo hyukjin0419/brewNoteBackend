@@ -14,10 +14,10 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class StaffCreateRequest {
+    private String cafeId;
     private String email;
     private String name;
     private String phoneNumber;
-    private String cafeId;
     private String encodedPassword;
 
     public Member toMemberEntity(){

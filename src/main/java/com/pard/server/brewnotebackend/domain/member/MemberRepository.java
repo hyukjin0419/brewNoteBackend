@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -45,4 +46,6 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
             @Param("cafeMemberRole") CafeMemberRoleType cafeMemberRoleType,
             Pageable pageable
     );
+
+    List<Member> findByIdIn(List<UUID> ids);
 }

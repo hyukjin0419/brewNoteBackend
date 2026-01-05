@@ -57,7 +57,7 @@ public class Member extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MemberStatus status;
+    private MemberStatus status; //이거 soft deletion임!!
 
 
     // --- Static Factory Method ---
@@ -75,7 +75,6 @@ public class Member extends BaseEntity {
                 .name(name)
                 .nickname(nickname)
                 .role(role)
-                //TODO 로그인 도입 후 바꾸기
                 .status(MemberStatus.ACTIVE)
                 .build();
     };
