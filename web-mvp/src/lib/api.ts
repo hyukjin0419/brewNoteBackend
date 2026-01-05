@@ -7,7 +7,7 @@ import type {
   RecipeUpdateRequest,
 } from '../types/recipe';
 import type { LoginRequest, LoginResponse } from '../types/auth';
-import type { CreateOwnerRequest, FranchiseResponse, OwnerSummaryResponse, OwnerDetailResponse, PageResponse } from '../types/member';
+import type { CreateOwnerRequest, FranchiseResponse, OwnerSummaryResponse, OwnerDetailResponse, PageResponse, MemberUpdateRequest } from '../types/member';
 
 const baseURL = import.meta.env.VITE_API_URL || '/api';
 
@@ -138,5 +138,10 @@ export const getOwner = async (ownerId: string): Promise<OwnerDetailResponse> =>
 // 점주 생성
 export const createOwner = async (request: CreateOwnerRequest): Promise<void> => {
   await apiClient.post('/members/admin/owners', request);
+};
+
+// 점주 정보 수정
+export const updateMember = async (memberId: string, request: MemberUpdateRequest): Promise<void> => {
+  await apiClient.put(`/members/admin/member/${memberId}`, request);
 };
 

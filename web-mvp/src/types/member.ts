@@ -40,6 +40,13 @@ export interface CafeSummaryResponse {
   cafeAddress: string;
 }
 
+export interface MemberUpdateRequest {
+  email?: string;
+  name?: string;
+  phoneNumber?: string;
+  status?: string;
+}
+
 export interface PageResponse<T> {
   content: T[];
   totalElements: number;
