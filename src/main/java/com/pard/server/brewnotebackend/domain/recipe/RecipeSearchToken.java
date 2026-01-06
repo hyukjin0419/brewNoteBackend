@@ -27,16 +27,22 @@ public class RecipeSearchToken {
     }
 
     public boolean hasInitial() {
-        return !initialSequence.isEmpty();
+        return initialSequence != null && !initialSequence.isEmpty();
     }
 
     public boolean hasHangulPrefix() {
-        return !hangulPrefix.isEmpty();
+        return hangulPrefix != null && !hangulPrefix.isEmpty();
     }
 
+    /* 순수 초성 입력일 때만 true */
     public boolean allowInitialSearch() {
-        // 순수 초성 입력일 때만 true
-        return hasInitial() && !hasHangulPrefix();
+        return hasInitial()
+                && !hasHangulPrefix()
+                && initialSequence.length() >= 2;
+    }
+
+    /* 완성형 2글자 이상일 때만 contains 허용 */
+    public boolean allowContainsSearch() {
+        return hasHangulPrefix() && hangulPrefix.length() >= 2;
     }
 }
-

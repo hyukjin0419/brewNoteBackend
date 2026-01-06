@@ -7,6 +7,7 @@ import com.pard.server.brewnotebackend.domain.member.MemberRoleType;
 import com.pard.server.brewnotebackend.global.exception.BusinessException;
 import com.pard.server.brewnotebackend.global.exception.ErrorCode;
 import com.pard.server.brewnotebackend.global.utils.GoogleDriveUtils;
+import com.pard.server.brewnotebackend.global.utils.HangulUtils;
 import com.pard.server.brewnotebackend.global.utils.UuidUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -233,7 +234,9 @@ public class RecipeServiceImpl implements RecipeService{
     @Override
     @Transactional(readOnly = true)
     public List<RecipeSearchResponse> search(String keyword) {
-        if (keyword == null || keyword.isEmpty()) return List.of();
+        if (keyword == null || keyword.isBlank()) {
+            return List.of();
+        }
 
         RecipeSearchToken token = RecipeSearchToken.from(keyword);
 
@@ -241,11 +244,31 @@ public class RecipeServiceImpl implements RecipeService{
             return List.of();
         }
 
+        String initialKeyword =
+                token.allowInitialSearch()
+                        ? "%" + token.getInitialSequence() + "%"
+                        : null;
+
+        String prefixKeyword =
+                token.hasHangulPrefix()
+                        ? token.getHangulPrefix() + "%"
+                        : null;
+
+        String containsKeyword =
+                token.allowContainsSearch()
+                        ? "%" + token.getHangulPrefix() + "%"
+                        : null;
+
         List<Recipe> candidates = recipeRepository.searchCandidates(
-                token.getInitialSequence() + "%",
-                token.hasHangulPrefix() ? token.getHangulPrefix() + "%" : null,
-                PageRequest.of(0,CANDIDATE_LIMIT)
+                initialKeyword,
+                prefixKeyword,
+                containsKeyword,
+                PageRequest.of(0, CANDIDATE_LIMIT)
         );
+
+        if (candidates.isEmpty()) {
+            return List.of();
+        }
 
         List<UUID> recipeIds = candidates.stream()
                 .map(Recipe::getId)
@@ -255,24 +278,32 @@ public class RecipeServiceImpl implements RecipeService{
                 recipeAliasRepository.findByRecipeIdIn(recipeIds).stream()
                         .collect(Collectors.groupingBy(RecipeAlias::getRecipeId));
 
-        List<ScoredRecipe> scored = candidates.stream()
-                .map(recipe -> matchAndScore(recipe, token, aliasMap.getOrDefault(recipe.getId(), List.of())))
+        return candidates.stream()
+                .map(recipe ->
+                        matchAndScore(
+                                recipe,
+                                token,
+                                aliasMap.getOrDefault(recipe.getId(), List.of())
+                        )
+                )
                 .filter(ScoredRecipe::isMatched)
-                .toList();
-
-        return scored.stream()
                 .sorted(Comparator.comparingInt(ScoredRecipe::getScore).reversed())
                 .limit(RESULT_LIMIT)
                 .map(RecipeSearchResponse::from)
                 .toList();
     }
 
+
+
+
     private ScoredRecipe matchAndScore(
             Recipe recipe,
             RecipeSearchToken token,
             List<RecipeAlias> aliases
     ) {
-        if (recipe.getTitle() == null) return ScoredRecipe.notMatched();
+        if (recipe.getTitle() == null) {
+            return ScoredRecipe.notMatched();
+        }
 
         int score = 0;
 
@@ -283,44 +314,88 @@ public class RecipeServiceImpl implements RecipeService{
         boolean titleMatched = false;
         boolean aliasMatched = false;
 
-        // --- title 기준 ---
-        if (recipe.getTitle().equals(raw)) {
+        String title = recipe.getTitle();
+
+        // =========================
+        // TITLE 기준
+        // =========================
+
+        // 완전 일치
+        if (title.equals(raw)) {
             score += 100;
             titleMatched = true;
         }
 
-        if (!hangulPrefix.isEmpty()
-                && recipe.getTitle().startsWith(hangulPrefix)) {
+        // prefix (가장 강함)
+        if (!hangulPrefix.isEmpty() && title.contains(hangulPrefix)) {
             score += 90;
             titleMatched = true;
         }
 
-        boolean titleInitialMatched = false;
+        // contains (완성형 2글자 이상)
+        if (token.allowContainsSearch() && title.contains(hangulPrefix)) {
+            score += 60;
+            titleMatched = true;
+        }
+
+        // =========================
+        // 초성 검색
+        // =========================
         if (token.allowInitialSearch()) {
-            titleInitialMatched =
-                    recipe.getTitleInitial().startsWith(inputInitials);
-            if (titleInitialMatched) {
+
+            // 전체 제목 초성
+            if (recipe.getTitleInitial().contains(inputInitials)) {
                 score += 70;
                 titleMatched = true;
             }
+
+            // 두 번째 단어 이상 초성 (예: "연유콜드브루" → ㅋㄷㅂㄹ)
+            String[] words = title.split("\\s+");
+            if (words.length >= 2) {
+                for (int i = 1; i < words.length; i++) {
+                    String wordInitial =
+                            HangulUtils.extractInitialSequence(words[i]);
+
+                    if (wordInitial.contains(inputInitials)) {
+                        score += 65; // 전체 초성보다 약간 낮게
+                        titleMatched = true;
+                        break;
+                    }
+                }
+            }
         }
 
-        // --- alias 기준 ---
-        aliasMatched = aliases.stream().anyMatch(a ->
-                a.getAlias().equals(raw)
-                        || (!hangulPrefix.isEmpty() && a.getAlias().startsWith(hangulPrefix))
-                        || (
-                        token.allowInitialSearch()
-                                && a.getAliasInitials() != null
-                                && a.getAliasInitials().startsWith(inputInitials)
-                )
-        );
+        // =========================
+        // ALIAS 기준
+        // =========================
+
+        aliasMatched = aliases.stream().anyMatch(a -> {
+            if (a.getAlias().equals(raw)) return true;
+
+            if (!hangulPrefix.isEmpty()
+                    && a.getAlias().contains(hangulPrefix)) {
+                return true;
+            }
+
+            if (token.allowContainsSearch()
+                    && a.getAlias().contains(hangulPrefix)) {
+                return true;
+            }
+
+            // alias 초성
+            return token.allowInitialSearch()
+                    && a.getAliasInitials() != null
+                    && a.getAliasInitials().contains(inputInitials);
+        });
 
         if (aliasMatched) {
             score += 40;
         }
 
-        // --- 최종 생존 조건 ---
+        // =========================
+        // 생존 조건
+        // =========================
+
         if (!titleMatched && !aliasMatched) {
             return ScoredRecipe.notMatched();
         }
