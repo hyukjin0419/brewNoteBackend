@@ -1,11 +1,9 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { login } from '../lib/api';
 import { setToken, setRole } from '../utils/auth';
 import './Login.css';
 
 function Login() {
-  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -87,4 +85,3 @@ function Login() {
 }
 
 export default Login;
-
