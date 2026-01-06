@@ -60,7 +60,15 @@ public enum ErrorCode {
             HttpStatus.BAD_REQUEST,
             "각 제조 Variant에는 최소 하나 이상의 제조 Step이 필요합니다.",
             true
+    ),
+
+    AUTHENTICATION_FAILED(
+        "AUTHENTICATION_FAILED",
+        HttpStatus.UNAUTHORIZED,
+        "이메일 또는 비밀번호가 올바르지 않습니다.",
+                true
     );
+
 
     private final String code;
     private final HttpStatus httpStatus;

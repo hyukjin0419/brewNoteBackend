@@ -6,18 +6,19 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.UUID;
 
 @Getter
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 public class CustomUserDetails implements UserDetails {
-    private final Long memberId;
+    private final UUID memberId;
     private final String userName;
     private final String password;
     private final Collection<? extends GrantedAuthority> authorities;
 
     public static CustomUserDetails ofLogin(
-            Long memberId,
+            UUID memberId,
             String userName,
             String password,
             String role
@@ -31,7 +32,7 @@ public class CustomUserDetails implements UserDetails {
     }
 
     public static CustomUserDetails ofJwt(
-            Long memberId,
+            UUID memberId,
             String userName,
             String role
     ) {

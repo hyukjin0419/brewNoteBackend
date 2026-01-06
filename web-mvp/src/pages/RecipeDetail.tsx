@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getRecipeDetail, updateRecipe, getRecipeFormData, deleteRecipe } from '../lib/api';
+import { isAdmin } from '../utils/auth';
 import type { 
   RecipeDetailResponse, 
   VariantResponse, 
@@ -389,7 +390,7 @@ function RecipeDetail() {
             ← 검색으로 돌아가기
           </button>
           <div className="header-action-buttons">
-            {!isEditMode && (
+            {!isEditMode && isAdmin() && (
               <>
                 <button className="edit-button" onClick={handleEditClick}>
                   수정하기
@@ -688,9 +689,11 @@ function RecipeDetail() {
             </div>
 
             <div className="form-actions">
-              <button type="button" onClick={handleDelete} className="delete-button">
-                삭제하기
-              </button>
+              {isAdmin() && (
+                <button type="button" onClick={handleDelete} className="delete-button">
+                  삭제하기
+                </button>
+              )}
               <div className="form-action-buttons">
                 <button type="button" onClick={handleCancelEdit} className="cancel-button">
                   취소

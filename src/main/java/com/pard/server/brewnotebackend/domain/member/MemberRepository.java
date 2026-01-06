@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,9 +16,10 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
     boolean existsByEmail(String email);
 
     Optional<Member> findByRole(MemberRoleType roleType);
+    Optional<Member> findByEmail(String email);
 
     @Query("""
-        select new com.pard.server.brewnotebackend.domain.member.OwnerDetailResponse(
+        select new com.pard.server.brewnotebackend.domain.member.OwnerSummaryResponse(
             m.id,
             m.email,
             m.name,
@@ -39,9 +41,11 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
         where m.role = :memberRole
     """)
     // MVP에서는 제일 처음 생성된 카페
-    Page<OwnerDetailResponse> findOwnerDetailsWithRepresentativeCafe (
+    Page<OwnerSummaryResponse> findOwnerDetailsWithRepresentativeCafe (
             @Param("memberRole") MemberRoleType memberRoleType,
             @Param("cafeMemberRole") CafeMemberRoleType cafeMemberRoleType,
             Pageable pageable
     );
+
+    List<Member> findByIdIn(List<UUID> ids);
 }

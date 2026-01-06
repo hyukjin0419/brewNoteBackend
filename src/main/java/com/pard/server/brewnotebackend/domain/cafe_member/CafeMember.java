@@ -44,35 +44,35 @@ public class CafeMember extends BaseEntity {
                 .cafeId(cafeId)
                 .memberId(memberId)
                 .role(CafeMemberRoleType.OWNER)
-                .status(CafeMemberStatus.PENDING)
+                //TODO 이메일 도입하면 Pending으로 바꿔줘야 함
+                .status(CafeMemberStatus.ACTIVATED)
                 .build();
     }
 
+    //MVP에서 제외
     public static CafeMember createManager(
             UUID cafeId,
-            UUID memberId,
-            CafeMemberRoleType role,
-            CafeMemberStatus status
+            UUID memberId
     ) {
         return CafeMember.builder()
                 .cafeId(cafeId)
                 .memberId(memberId)
                 .role(CafeMemberRoleType.MANAGER)
-                .status(CafeMemberStatus.PENDING)
+                //TODO 이메일 도입하면 Pending으로 바꿔줘야 함
+                .status(CafeMemberStatus.ACTIVATED)
                 .build();
     }
 
     public static CafeMember createStaff(
             UUID cafeId,
-            UUID memberId,
-            CafeMemberRoleType role,
-            CafeMemberStatus status
+            UUID memberId
     ) {
         return CafeMember.builder()
                 .cafeId(cafeId)
                 .memberId(memberId)
                 .role(CafeMemberRoleType.STAFF)
-                .status(CafeMemberStatus.PENDING)
+                //TODO 이메일 도입하면 Pending으로 바꿔줘야 함
+                .status(CafeMemberStatus.ACTIVATED)
                 .build();
     }
 

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { searchRecipes } from '../lib/api';
+import { removeToken, isAdmin } from '../utils/auth';
 import type { RecipeSearchResponse } from '../types/recipe';
 import './RecipeSearch.css';
 
@@ -65,14 +66,35 @@ function RecipeSearch() {
     navigate('/recipes/create');
   };
 
+  const handleOwnerManagementClick = () => {
+    navigate('/owners');
+  };
+
+  const handleLogout = () => {
+    removeToken();
+    window.location.href = '/login';
+  };
+
   return (
     <div className="recipe-search-page">
       <div className="search-container">
         <div className="search-header">
           <h1>레시피 검색</h1>
-          <button className="create-button" onClick={handleCreateClick}>
-            레시피 추가하기
-          </button>
+          <div className="header-buttons">
+            {isAdmin() && (
+              <>
+                <button className="create-button" onClick={handleCreateClick}>
+                  레시피 추가하기
+                </button>
+                <button className="owner-management-button" onClick={handleOwnerManagementClick}>
+                  점주 관리
+                </button>
+              </>
+            )}
+            <button className="logout-button" onClick={handleLogout}>
+              로그아웃
+            </button>
+          </div>
         </div>
 
         <div className="search-box" ref={searchRef}>

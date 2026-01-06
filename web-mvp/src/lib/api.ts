@@ -6,6 +6,8 @@ import type {
   RecipeCreateRequest,
   RecipeUpdateRequest,
 } from '../types/recipe';
+import type { LoginRequest, LoginResponse } from '../types/auth';
+import type { CreateOwnerRequest, FranchiseResponse, OwnerSummaryResponse, OwnerDetailResponse, PageResponse, MemberUpdateRequest } from '../types/member';
 
 const baseURL = import.meta.env.VITE_API_URL || '/api';
 
@@ -15,6 +17,20 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// 요청 인터셉터: 토큰 자동 추가
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 // 에러 인터셉터 추가
 apiClient.interceptors.response.use(
@@ -75,5 +91,57 @@ export const updateRecipe = async (recipeId: string, request: RecipeUpdateReques
 // 레시피 삭제
 export const deleteRecipe = async (recipeId: string): Promise<void> => {
   await apiClient.delete(`/recipe/admin/recipe/${recipeId}`);
+};
+
+// 로그인
+export const login = async (request: LoginRequest): Promise<LoginResponse> => {
+  const response = await apiClient.post<LoginResponse>('/auth/login', request);
+  console.log('로그인 응답 전체:', response);
+  console.log('로그인 응답 데이터:', response.data);
+  console.log('로그인 응답 상태:', response.status);
+  console.log('로그인 응답 헤더:', response.headers);
+  
+  // 백엔드가 ResponseEntity<Void>를 반환하는 경우 response.data가 undefined일 수 있음
+  // 하지만 실제로는 LoginResponse를 반환해야 함
+  if (response.data) {
+    // 응답 body가 있으면 사용
+    if (response.data.accessToken) {
+      return response.data;
+    }
+  }
+  
+  // 응답 body가 없거나 토큰이 없으면 에러
+  // 실제로는 백엔드가 LoginResponse를 반환해야 함
+  throw new Error('로그인 응답에 토큰이 없습니다. 백엔드가 LoginResponse를 반환하는지 확인해주세요.');
+};
+
+// 프랜차이즈 목록 조회
+export const getFranchises = async (): Promise<FranchiseResponse[]> => {
+  const { data } = await apiClient.get<FranchiseResponse[]>('/admin/franchise');
+  return data;
+};
+
+// 점주 목록 조회
+export const getOwners = async (page: number = 0, size: number = 20): Promise<PageResponse<OwnerSummaryResponse>> => {
+  const { data } = await apiClient.get<PageResponse<OwnerSummaryResponse>>('/members/admin/owners', {
+    params: { page, size },
+  });
+  return data;
+};
+
+// 점주 상세 조회
+export const getOwner = async (ownerId: string): Promise<OwnerDetailResponse> => {
+  const { data } = await apiClient.get<OwnerDetailResponse>(`/members/admin/owners/${ownerId}`);
+  return data;
+};
+
+// 점주 생성
+export const createOwner = async (request: CreateOwnerRequest): Promise<void> => {
+  await apiClient.post('/members/admin/owners', request);
+};
+
+// 점주 정보 수정
+export const updateMember = async (memberId: string, request: MemberUpdateRequest): Promise<void> => {
+  await apiClient.put(`/members/admin/member/${memberId}`, request);
 };
 

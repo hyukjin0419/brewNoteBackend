@@ -7,6 +7,7 @@ import jakarta.persistence.Table;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,21 +28,19 @@ public class RecipeController {
     //등록
     //======================= ADMIN ========================//
     //TODO: ADMIN APIs 권한 추가
-    //  @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/admin/recipe")
-    //TODO AdminId -> 는 @CurrentUser로 넘겨주기: 일단은 서비스단에서 ADMIN으로 하드코딩하기
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> createRecipe(@RequestBody RecipeCreateRequest request) {
         recipeService.createRecipe(request);
         return ResponseEntity.ok().build();
     }
 
     @GetMapping("/admin/recipes/form-data")
-    //TODO  @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RecipeFormDataResponse> getRecipeFormData() {
         return ResponseEntity.ok(recipeService.getFormData());
     }
 
-    //TODO  @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/admin/recipe/{recipeId}")
     public ResponseEntity<Void> updateRecipe(@PathVariable String recipeId, @RequestBody RecipeUpdateRequest request) {
         recipeService.updateRecipe(recipeId, request);
@@ -49,6 +48,7 @@ public class RecipeController {
     }
 
     @DeleteMapping("/admin/recipe/{recipeId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteRecipe(@PathVariable String recipeId) {
         recipeService.deleteRecipe(recipeId);
         return ResponseEntity.ok().build();

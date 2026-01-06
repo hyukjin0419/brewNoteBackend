@@ -22,9 +22,5 @@ admin:
 jwt:
   auth:
     secret: ${JWT_AUTH_SECRET}
-  #  verification:
-  #    secret: ${JWT_VERIFICATION_SECRET:ehdgoanfrhk-qorentksdl-akfmrh-ekfgehfhr-dkssudgktpdy-rkatkgody-wkfdlTdjdy-ektlaksskdy}
-  #  password:
-  #    secret: ${JWT_PASSWORD_SECRET:ehdgoanfrhk-qorentksdl-akfmrh-ekfgehfhr-dkssudgktpdy-rkatkgody-wkfdlTdjdy-ektlaksskdy}
   access-token-valid-time: ${JWT_ACCESS_TOKEN_VALID_TIME}     # 30분 (ms)
   refresh-token-valid-time: ${JWT_REFRESH_TOKEN_VALID_TIME}  # 7일 (ms)

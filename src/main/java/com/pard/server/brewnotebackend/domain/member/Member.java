@@ -12,6 +12,7 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -52,20 +53,15 @@ public class Member extends BaseEntity {
     // --- 상태 & 권한 ---
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MemberRoleType role; //ADMIN, USER
+    private MemberRoleType role;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MemberStatus status; // ACTIVE, INACTIVE
+    private MemberStatus status; //이거 soft deletion임!!
 
-    //TODO
-    /*
-    - 점주가 매장 여러개 가질 수 있고
-    - 스태프도 매장 여러개 넣을 수 있고
-     */
 
     // --- Static Factory Method ---
-    //계정 생성
+    //password랑 nickname없이 작성*/ -> 지금은.. //TODO 이메일 도입 후 바꾸기
     public static Member of(
             String email,
             String password,
@@ -83,27 +79,24 @@ public class Member extends BaseEntity {
                 .build();
     };
 
-    //TODO 계정 생성은 여기서 확인 이후 ACTIVATION은 CafeMember에서 실행하기로 하자
-    /*
-    TODO
-    - 계정 생성은 다 똑같이 하고
-    - 계정 activate는 ONWER은 생성시에 vs. Staff는 자기가 작성해서!
-     */
+    //--- Business Logic ---
+    public void updateEmail(String email){
+        this.email = email;
+    }
 
-    // 비지니스 로직은 필요할 때 제대로 작성! --- Business Logic ---
-//    public void updateInfo(String nickname){
-//        this.nickname = nickname;
-//    }
-//
-//    public void leave() {
-//        this.status = MemberStatus.LEAVE;
-//    }
-//
-//    public void vacationStart() {
-//        this.status = MemberStatus.VACATION;
-//    }
-//
-//    public void comeBack() {
-//        this.status = MemberStatus.ACTIVE;
-//    }
+    public void updateName(String name){
+        this.name = name;
+    }
+
+    public void updatePhoneNumber(String phoneNumber){
+        this.phoneNumber = phoneNumber;
+    }
+
+    public void activate() {
+        this.status = MemberStatus.ACTIVE;
+    }
+
+    public void deactivate() {
+        this.status = MemberStatus.INACTIVE;
+    }
 }
