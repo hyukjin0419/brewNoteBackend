@@ -344,7 +344,7 @@ public class RecipeServiceImpl implements RecipeService{
         if (token.allowInitialSearch()) {
 
             // 전체 제목 초성
-            if (recipe.getTitleInitial().contains(inputInitials)) {
+            if (recipe.getTitleInitial().startsWith(inputInitials)) {
                 score += 70;
                 titleMatched = true;
             }
