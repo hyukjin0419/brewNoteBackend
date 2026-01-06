@@ -37,7 +37,7 @@ public class SecurityConfig {
                 //전역 인가 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/**",                     //TODO 테스트 후 삭제바람
+//                                "/**",                     //TODO 테스트 후 삭제바람
                                 "/api/auth/**",
                                 "/v3/api-docs/**",      // JSON/YAML 형식의 API 명세 경로
                                 "/swagger-ui/**",       // Swagger UI HTML 페이지 및 관련 리소스
