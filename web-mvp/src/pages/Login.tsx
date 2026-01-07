@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { login } from '../lib/api';
-import { setToken, setRole } from '../utils/auth';
+import { login, getOwnersCafes } from '../lib/api';
+import { setToken, setRole, setCafes, setSelectedCafeId } from '../utils/auth';
 import './Login.css';
 
 function Login() {
@@ -30,6 +30,22 @@ function Login() {
       setToken(response.accessToken);
       if (response.role) {
         setRole(response.role);
+        
+        // 점주(USER)인 경우 카페 목록 조회
+        if (response.role === 'USER') {
+          try {
+            const cafesData = await getOwnersCafes();
+            // 카페 전체 정보를 JSON 문자열로 저장
+            setCafes(JSON.stringify(cafesData.ownedCafes));
+            // 첫 번째 카페를 기본 선택
+            if (cafesData.ownedCafes.length > 0) {
+              setSelectedCafeId(cafesData.ownedCafes[0].cafeId);
+            }
+          } catch (cafeError: any) {
+            console.error('카페 목록 조회 오류:', cafeError);
+            // 카페 목록 조회 실패해도 로그인은 진행
+          }
+        }
       }
       // 페이지 새로고침하여 App의 인증 상태 업데이트
       window.location.href = '/';

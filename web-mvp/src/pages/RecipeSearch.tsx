@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { searchRecipes } from '../lib/api';
-import { removeToken, isAdmin } from '../utils/auth';
 import type { RecipeSearchResponse } from '../types/recipe';
+import { isOwner, getCafes, getSelectedCafeId, setSelectedCafeId, removeToken, removeCafes, isAdmin } from '../utils/auth';
+import type { OwnedCafeSummary } from '../types/member';
 import './RecipeSearch.css';
 
 function RecipeSearch() {
@@ -13,6 +14,36 @@ function RecipeSearch() {
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout>();
+  
+  // 카페 관련 상태
+  const [cafes, setCafesState] = useState<OwnedCafeSummary[]>([]);
+  const [selectedCafeId, setSelectedCafeIdState] = useState<string>('');
+
+  // 카페 목록 로드
+  useEffect(() => {
+    if (isOwner()) {
+      const cafesJson = getCafes();
+      if (cafesJson) {
+        try {
+          const cafesData: OwnedCafeSummary[] = JSON.parse(cafesJson);
+          if (cafesData.length > 0) {
+            setCafesState(cafesData);
+            const savedCafeId = getSelectedCafeId();
+            if (savedCafeId && cafesData.some(c => c.cafeId === savedCafeId)) {
+              setSelectedCafeIdState(savedCafeId);
+            } else {
+              // 저장된 카페 ID가 없거나 유효하지 않으면 첫 번째 카페 선택
+              const firstCafeId = cafesData[0].cafeId;
+              setSelectedCafeIdState(firstCafeId);
+              setSelectedCafeId(firstCafeId);
+            }
+          }
+        } catch (error) {
+          console.error('카페 목록 파싱 오류:', error);
+        }
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -66,13 +97,24 @@ function RecipeSearch() {
     navigate('/recipes/create');
   };
 
-  const handleOwnerManagementClick = () => {
-    navigate('/owners');
+  const handleCafeChange = (cafeId: string) => {
+    setSelectedCafeIdState(cafeId);
+    setSelectedCafeId(cafeId);
   };
 
   const handleLogout = () => {
     removeToken();
+    removeCafes();
+    // 페이지 새로고침하여 App의 인증 상태 업데이트
     window.location.href = '/login';
+  };
+
+  const handleStaffManagementClick = () => {
+    navigate('/staffs');
+  };
+
+  const handleOwnerManagementClick = () => {
+    navigate('/owners');
   };
 
   return (
@@ -80,7 +122,20 @@ function RecipeSearch() {
       <div className="search-container">
         <div className="search-header">
           <h1>레시피 검색</h1>
-          <div className="header-buttons">
+          <div className="header-actions">
+            {isOwner() && cafes.length > 0 && (
+              <select
+                className="cafe-select"
+                value={selectedCafeId || cafes[0]?.cafeId || ''}
+                onChange={(e) => handleCafeChange(e.target.value)}
+              >
+                {cafes.map((cafe) => (
+                  <option key={cafe.cafeId} value={cafe.cafeId}>
+                    {cafe.CafeName}
+                  </option>
+                ))}
+              </select>
+            )}
             {isAdmin() && (
               <>
                 <button className="create-button" onClick={handleCreateClick}>
@@ -90,6 +145,11 @@ function RecipeSearch() {
                   점주 관리
                 </button>
               </>
+            )}
+            {isOwner() && (
+              <button className="staff-management-button" onClick={handleStaffManagementClick}>
+                매장 관리
+              </button>
             )}
             <button className="logout-button" onClick={handleLogout}>
               로그아웃

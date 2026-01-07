@@ -29,3 +29,30 @@ export const isAdmin = (): boolean => {
   return getRole() === 'ADMIN';
 };
 
+export const isOwner = (): boolean => {
+  return getRole() === 'USER';
+};
+
+// 카페 목록 저장/조회
+export const setCafes = (cafes: string): void => {
+  localStorage.setItem('ownerCafes', cafes);
+};
+
+export const getCafes = (): string | null => {
+  return localStorage.getItem('ownerCafes');
+};
+
+export const removeCafes = (): void => {
+  localStorage.removeItem('ownerCafes');
+  localStorage.removeItem('selectedCafeId');
+};
+
+// 선택한 카페 ID 저장/조회
+export const setSelectedCafeId = (cafeId: string): void => {
+  localStorage.setItem('selectedCafeId', cafeId);
+};
+
+export const getSelectedCafeId = (): string | null => {
+  return localStorage.getItem('selectedCafeId');
+};
+

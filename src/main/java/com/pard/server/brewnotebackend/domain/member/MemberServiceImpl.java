@@ -5,6 +5,7 @@ import com.pard.server.brewnotebackend.domain.cafe.CafeRepository;
 import com.pard.server.brewnotebackend.domain.cafe_member.CafeMember;
 import com.pard.server.brewnotebackend.domain.cafe_member.CafeMemberRepository;
 import com.pard.server.brewnotebackend.domain.cafe_member.CafeMemberRoleType;
+import com.pard.server.brewnotebackend.domain.cafe_member.OwnersCafesResponse;
 import com.pard.server.brewnotebackend.global.exception.BusinessException;
 import com.pard.server.brewnotebackend.global.exception.ErrorCode;
 import com.pard.server.brewnotebackend.global.utils.UuidUtils;
@@ -189,6 +190,38 @@ public class MemberServiceImpl implements MemberService{
                     member.getPhoneNumber()
             );
         });
+    }
+
+    @Override
+    public OwnersCafesResponse getOwnersCafes(UUID memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원이 존재하지 않습니다"));
+
+        List<CafeMember> ownedCafeMembers = cafeMemberRepository.findByMemberIdAndRole(
+                memberId,
+                CafeMemberRoleType.OWNER
+        );
+
+        List<UUID> cafeIds = ownedCafeMembers.stream()
+                .map(CafeMember::getCafeId)
+                .toList();
+
+        Map<UUID, Cafe> cafeMap = cafeRepository.findAllById(cafeIds).stream()
+                .collect(Collectors.toMap(Cafe::getId, Function.identity()));
+
+        List<OwnersCafesResponse.OwnedCafeSummary> ownedCafes =
+                cafeIds.stream()
+                        .map(cafeId -> {
+                            Cafe cafe = cafeMap.get(cafeId);
+                            return OwnersCafesResponse.OwnedCafeSummary.from(
+                                    cafe.getId().toString(),
+                                    cafe.getName()
+                            );
+                        }).toList();
+
+        return OwnersCafesResponse.from(
+                ownedCafes
+        );
     }
 }
 

@@ -1,5 +1,6 @@
 package com.pard.server.brewnotebackend.domain.member;
 
+import com.pard.server.brewnotebackend.domain.cafe_member.OwnersCafesResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -18,4 +19,6 @@ public interface MemberService {
     void createStaff(UUID memberId, StaffCreateRequest request);
 
     Page<StaffSummaryResponse> getStaffs(UUID memberId, UUID cafeId, Pageable pageable);
+
+    OwnersCafesResponse getOwnersCafes(UUID memberId);
 }

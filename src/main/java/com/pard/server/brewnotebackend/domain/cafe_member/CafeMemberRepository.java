@@ -1,6 +1,7 @@
 package com.pard.server.brewnotebackend.domain.cafe_member;
 
 import com.pard.server.brewnotebackend.domain.cafe.Cafe;
+import com.pard.server.brewnotebackend.domain.member.MemberRoleType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,6 +20,6 @@ public interface CafeMemberRepository extends JpaRepository<CafeMember,Long> {
 
     Page<CafeMember> findByCafeId(UUID cafeId, Pageable pageable);
 
-
+    List<CafeMember> findByMemberIdAndRole(UUID memberId, CafeMemberRoleType roleType);
 
 }
