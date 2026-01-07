@@ -57,3 +57,45 @@ export interface PageResponse<T> {
   last: boolean;
 }
 
+// 점주 카페 목록
+export interface OwnersCafesResponse {
+  ownedCafes: OwnedCafeSummary[];
+}
+
+export interface OwnedCafeSummary {
+  cafeId: string;
+  CafeName: string;
+}
+
+// 스태프 관련
+export enum CafeMemberRoleType {
+  OWNER = 'OWNER',
+  MANAGER = 'MANAGER',
+  STAFF = 'STAFF',
+}
+
+export enum CafeMemberStatus {
+  PENDING = 'PENDING',
+  ACTIVATED = 'ACTIVATED',
+  LEAVE = 'LEAVE',
+}
+
+export interface StaffSummaryResponse {
+  memberId: string;
+  cafeId: string;
+  cafeMemberId: string;
+  role: CafeMemberRoleType;
+  status: CafeMemberStatus;
+  name: string;
+  nickName: string;
+  email: string;
+  phoneNumber: string;
+}
+
+export interface StaffCreateRequest {
+  cafeId: string;
+  email: string;
+  name: string;
+  phoneNumber: string;
+}
+

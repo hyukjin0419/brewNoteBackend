@@ -1,5 +1,6 @@
 package com.pard.server.brewnotebackend.domain.member;
 
+import com.pard.server.brewnotebackend.domain.cafe_member.OwnersCafesResponse;
 import com.pard.server.brewnotebackend.global.security.currentUser.CurrentUser;
 import com.pard.server.brewnotebackend.global.security.currentUser.CustomUserDetails;
 import com.pard.server.brewnotebackend.global.utils.UuidUtils;
@@ -12,7 +13,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Member", description = "멤버관련 (가입 포함) API")
@@ -59,6 +59,13 @@ public class MemberController {
 
 
     //======================= OWNER ========================//
+    @GetMapping("/owner/cafes")
+    public ResponseEntity<OwnersCafesResponse> getOwnersCafes(
+            @CurrentUser CustomUserDetails user
+    )  {
+        return ResponseEntity.ok(memberService.getOwnersCafes(user.getMemberId()));
+    }
+
     @PostMapping("/owner/staffs")
     public ResponseEntity<Void> createStaff(
             @CurrentUser CustomUserDetails user,

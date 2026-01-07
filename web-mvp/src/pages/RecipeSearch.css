@@ -9,18 +9,19 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
+  gap: 16px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .search-header h1 {
   font-size: 32px;
   font-weight: 600;
   color: #333;
-}
-
-.header-buttons {
-  display: flex;
-  gap: 12px;
-  align-items: center;
 }
 
 .create-button {
@@ -37,38 +38,6 @@
 
 .create-button:hover {
   background-color: #357abd;
-}
-
-.owner-management-button {
-  background-color: #28a745;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.owner-management-button:hover {
-  background-color: #218838;
-}
-
-.logout-button {
-  background-color: #e74c3c;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 6px;
-  font-size: 16px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.logout-button:hover {
-  background-color: #c0392b;
 }
 
 .search-box {
@@ -168,5 +137,80 @@
   padding: 20px;
   text-align: center;
   color: #999;
+}
+
+.cafe-select {
+  padding: 12px 16px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+  background-color: white;
+  color: #333;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  height: 44px;
+  box-sizing: border-box;
+}
+
+.cafe-select:focus {
+  outline: none;
+  border-color: #4a90e2;
+}
+
+.staff-management-button {
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  height: 44px;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.staff-management-button:hover {
+  background-color: #357abd;
+}
+
+.owner-management-button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  height: 44px;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.owner-management-button:hover {
+  background-color: #218838;
+}
+
+.logout-button {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  height: 44px;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+.logout-button:hover {
+  background-color: #c0392b;
 }
 

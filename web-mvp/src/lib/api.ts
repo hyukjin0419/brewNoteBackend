@@ -6,8 +6,18 @@ import type {
   RecipeCreateRequest,
   RecipeUpdateRequest,
 } from '../types/recipe';
+import type {
+  OwnersCafesResponse,
+  StaffSummaryResponse,
+  StaffCreateRequest,
+  PageResponse,
+  OwnerSummaryResponse,
+  OwnerDetailResponse,
+  CreateOwnerRequest,
+  FranchiseResponse,
+  MemberUpdateRequest,
+} from '../types/member';
 import type { LoginRequest, LoginResponse } from '../types/auth';
-import type { CreateOwnerRequest, FranchiseResponse, OwnerSummaryResponse, OwnerDetailResponse, PageResponse, MemberUpdateRequest } from '../types/member';
 
 const baseURL = import.meta.env.VITE_API_URL || '/api';
 
@@ -93,26 +103,33 @@ export const deleteRecipe = async (recipeId: string): Promise<void> => {
   await apiClient.delete(`/recipe/admin/recipe/${recipeId}`);
 };
 
+// 점주 카페 목록 조회
+export const getOwnersCafes = async (): Promise<OwnersCafesResponse> => {
+  const { data } = await apiClient.get<OwnersCafesResponse>('/members/owner/cafes');
+  return data;
+};
+
+// 스태프 목록 조회
+export const getStaffs = async (
+  cafeId: string,
+  page: number = 0,
+  size: number = 20
+): Promise<PageResponse<StaffSummaryResponse>> => {
+  const { data } = await apiClient.get<PageResponse<StaffSummaryResponse>>('/members/owner/staffs', {
+    params: { cafeId, page, size },
+  });
+  return data;
+};
+
+// 스태프 생성
+export const createStaff = async (request: StaffCreateRequest): Promise<void> => {
+  await apiClient.post('/members/owner/staffs', request);
+};
+
 // 로그인
 export const login = async (request: LoginRequest): Promise<LoginResponse> => {
-  const response = await apiClient.post<LoginResponse>('/auth/login', request);
-  console.log('로그인 응답 전체:', response);
-  console.log('로그인 응답 데이터:', response.data);
-  console.log('로그인 응답 상태:', response.status);
-  console.log('로그인 응답 헤더:', response.headers);
-  
-  // 백엔드가 ResponseEntity<Void>를 반환하는 경우 response.data가 undefined일 수 있음
-  // 하지만 실제로는 LoginResponse를 반환해야 함
-  if (response.data) {
-    // 응답 body가 있으면 사용
-    if (response.data.accessToken) {
-      return response.data;
-    }
-  }
-  
-  // 응답 body가 없거나 토큰이 없으면 에러
-  // 실제로는 백엔드가 LoginResponse를 반환해야 함
-  throw new Error('로그인 응답에 토큰이 없습니다. 백엔드가 LoginResponse를 반환하는지 확인해주세요.');
+  const { data } = await apiClient.post<LoginResponse>('/auth/login', request);
+  return data;
 };
 
 // 프랜차이즈 목록 조회

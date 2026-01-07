@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import RecipeSearch from './pages/RecipeSearch';
 import RecipeDetail from './pages/RecipeDetail';
 import RecipeCreate from './pages/RecipeCreate';
+import StaffManagement from './pages/StaffManagement';
 import OwnerManagement from './pages/OwnerManagement';
 import OwnerDetail from './pages/OwnerDetail';
 import Login from './pages/Login';
@@ -26,10 +27,10 @@ function App() {
   if (!authChecked) {
     return (
       <div className="app">
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          alignItems: 'center', 
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
           height: '100vh',
           fontSize: '18px',
           color: '#666'
@@ -43,29 +44,33 @@ function App() {
   return (
     <div className="app">
       <Routes>
-        <Route 
-          path="/login" 
-          element={authenticated ? <Navigate to="/" replace /> : <Login />} 
+        <Route
+          path="/login"
+          element={authenticated ? <Navigate to="/" replace /> : <Login />}
         />
-        <Route 
-          path="/" 
-          element={authenticated ? <RecipeSearch /> : <Navigate to="/login" replace />} 
+        <Route
+          path="/"
+          element={authenticated ? <RecipeSearch /> : <Navigate to="/login" replace />}
         />
-        <Route 
-          path="/recipes/:recipeId" 
-          element={authenticated ? <RecipeDetail /> : <Navigate to="/login" replace />} 
+        <Route
+          path="/recipes/:recipeId"
+          element={authenticated ? <RecipeDetail /> : <Navigate to="/login" replace />}
         />
-        <Route 
-          path="/recipes/create" 
-          element={authenticated ? <RecipeCreate /> : <Navigate to="/login" replace />} 
+        <Route
+          path="/recipes/create"
+          element={authenticated ? <RecipeCreate /> : <Navigate to="/login" replace />}
         />
-        <Route 
-          path="/owners" 
-          element={authenticated ? <OwnerManagement /> : <Navigate to="/login" replace />} 
+        <Route
+          path="/staffs"
+          element={authenticated ? <StaffManagement /> : <Navigate to="/login" replace />}
         />
-        <Route 
-          path="/owners/:ownerId" 
-          element={authenticated ? <OwnerDetail /> : <Navigate to="/login" replace />} 
+        <Route
+          path="/owners"
+          element={authenticated ? <OwnerManagement /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/owners/:ownerId"
+          element={authenticated ? <OwnerDetail /> : <Navigate to="/login" replace />}
         />
       </Routes>
     </div>

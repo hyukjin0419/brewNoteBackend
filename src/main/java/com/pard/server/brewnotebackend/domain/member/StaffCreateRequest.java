@@ -19,8 +19,15 @@ public class StaffCreateRequest {
     private String name;
     private String phoneNumber;
     private String encodedPassword;
+    //nickname?
 
     public Member toMemberEntity(){
-        return Member.of(email, name, phoneNumber, encodedPassword, MemberRoleType.USER);
+        return Member.of(
+                email,
+                encodedPassword,
+                name,
+                name,
+                MemberRoleType.USER
+        );
     }
 }
