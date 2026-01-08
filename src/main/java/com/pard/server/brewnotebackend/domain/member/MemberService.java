@@ -21,4 +21,6 @@ public interface MemberService {
     Page<StaffSummaryResponse> getStaffs(UUID memberId, UUID cafeId, Pageable pageable);
 
     OwnersCafesResponse getOwnersCafes(UUID memberId);
+
+    StaffDetailResponse getStaff(UUID ownerId, UUID cafeId, UUID staffId);
 }

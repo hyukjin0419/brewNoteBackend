@@ -18,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.AccessDeniedException;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -222,6 +223,24 @@ public class MemberServiceImpl implements MemberService{
         return OwnersCafesResponse.from(
                 ownedCafes
         );
+    }
+
+    @Override
+    public StaffDetailResponse getStaff(UUID ownerId, UUID cafeId, UUID staffId) {
+        CafeMember ownerCafeMember = cafeMemberRepository.findByMemberIdAndCafeIdAndRole(ownerId, cafeId, CafeMemberRoleType.OWNER)
+                    .orElseThrow(() -> new IllegalStateException("해당 카페의 점주가 아닙니다."));
+
+        // 2. staff가 해당 카페 소속인지 확인
+        CafeMember staffCafeMember = cafeMemberRepository
+                .findByMemberIdAndCafeId(staffId, cafeId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 카페의 스태프가 아닙니다."));
+
+        // 3. staff Member 정보 조회
+        Member staff = memberRepository.findById(staffId)
+                .orElseThrow(() -> new EntityNotFoundException("스태프 정보를 찾을 수 없습니다."));
+
+        // 4. Response 생성 (DTO 내부 builder 사용)
+        return StaffDetailResponse.from(staff, staffCafeMember);
     }
 }
 

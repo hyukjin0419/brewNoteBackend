@@ -87,6 +87,16 @@ public class MemberController {
     ) {
         return ResponseEntity.ok(memberService.getStaffs(user.getMemberId(), UuidUtils.parse(cafeId), pageable));
     }
+
+    @GetMapping("/cafes/{cafeId}/staffs/{staffId}")
+    public ResponseEntity<StaffDetailResponse> getStaff(
+            @CurrentUser CustomUserDetails user,
+            @PathVariable String cafeId,
+            @PathVariable String staffId
+    ){
+        return ResponseEntity.ok(memberService.getStaff(user.getMemberId(), UuidUtils.parse(cafeId), UuidUtils.parse(staffId)));
+    }
+
     //======================= STAFF ========================//
 }
 /*
