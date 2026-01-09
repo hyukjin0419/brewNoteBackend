@@ -32,15 +32,11 @@ public class RecipeFavoriteServiceImpl implements RecipeFavoriteService{
     // 즐겨찾기 추가
     // ===============================
     @Override
-    public void addFavorite(UUID memberId, RecipeFavoriteVariantRequest.Add request) {
+    public boolean toggleFavorite(UUID memberId, RecipeFavoriteVariantRequest request) {
 
         CafeMember cafeMember = cafeMemberRepository.findByMemberIdAndCafeId(memberId, UuidUtils.parse(request.getCafeId()))
                 .orElseThrow(() ->
                         new EntityNotFoundException("CafeMember not found"));
-
-        if (!cafeMember.getMemberId().equals(memberId)) {
-            throw new IllegalStateException("본인의 CafeMember만 접근할 수 있습니다.");
-        }
 
         boolean exists =
                 favoriteRepository.existsByCafeMemberIdAndRecipeVariantId(
@@ -49,7 +45,11 @@ public class RecipeFavoriteServiceImpl implements RecipeFavoriteService{
                 );
 
         if (exists) {
-            throw new IllegalStateException("이미 즐겨찾기된 레시피입니다.");
+            favoriteRepository.deleteByCafeMemberIdAndRecipeVariantId(
+                    cafeMember.getId(),
+                    request.getRecipeVariantId()
+            );
+            return false;
         }
 
         favoriteRepository.save(
@@ -59,27 +59,7 @@ public class RecipeFavoriteServiceImpl implements RecipeFavoriteService{
                         .recipeVariantId(request.getRecipeVariantId())
                         .build()
         );
-    }
-
-    // ===============================
-    // 즐겨찾기 삭제
-    // ===============================
-    @Override
-    public void removeFavorite(UUID memberId,
-                               RecipeFavoriteVariantRequest.Remove request) {
-
-        CafeMember cafeMember = cafeMemberRepository.findByMemberIdAndCafeId(memberId, UuidUtils.parse(request.getCafeId()))
-                .orElseThrow(() ->
-                        new EntityNotFoundException("CafeMember not found"));
-
-        if (!cafeMember.getMemberId().equals(memberId)) {
-            throw new IllegalStateException("본인의 CafeMember만 접근할 수 있습니다.");
-        }
-
-        favoriteRepository.deleteByCafeMemberIdAndRecipeVariantId(
-                cafeMember.getId(),
-                request.getRecipeVariantId()
-        );
+        return true;
     }
 
     // ===============================

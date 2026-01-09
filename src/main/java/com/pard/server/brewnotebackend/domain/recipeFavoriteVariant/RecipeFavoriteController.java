@@ -18,49 +18,21 @@ public class RecipeFavoriteController {
 
     private final RecipeFavoriteService removeFavoriteService;
 
-    /*
-     * 즐겨찾기 추가
-     */
-    @PostMapping
-    public ResponseEntity<Void> addFavorite(
+    @PostMapping("/toggle")
+    public ResponseEntity<ToggleResponse> toggleFavorite(
             @CurrentUser CustomUserDetails user,
-            @RequestBody RecipeFavoriteVariantRequest.Add request
+            @RequestBody RecipeFavoriteVariantRequest request
     ) {
-        removeFavoriteService.addFavorite(
-                user.getMemberId(),
-                request
-        );
-        return ResponseEntity.ok().build();
+        ToggleResponse response = ToggleResponse.from(removeFavoriteService.toggleFavorite(user.getMemberId(), request));
+        return ResponseEntity.ok(response);
     }
 
-    /**
-     * 즐겨찾기 삭제
-     */
-    @DeleteMapping
-    public ResponseEntity<Void> removeFavorite(
-            @CurrentUser CustomUserDetails user,
-            @RequestBody RecipeFavoriteVariantRequest.Remove request
-    ) {
-        removeFavoriteService.removeFavorite(
-                user.getMemberId(),
-                request
-        );
-        return ResponseEntity.ok().build();
-    }
-
-    /**
-     * 즐겨찾기 목록 조회 (카페 단위)
-     */
     @GetMapping
     public ResponseEntity<RecipeFavoriteListResponse> getFavorites(
             @CurrentUser CustomUserDetails user,
             @RequestParam String cafeId
     ) {
         return ResponseEntity.ok(
-                removeFavoriteService.getFavorites(
-                        user.getMemberId(),
-                        UuidUtils.parse(cafeId)
-                )
-        );
+                removeFavoriteService.getFavorites(user.getMemberId(), UuidUtils.parse(cafeId)));
     }
 }

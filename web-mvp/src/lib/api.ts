@@ -5,8 +5,8 @@ import type {
   RecipeFormDataResponse,
   RecipeCreateRequest,
   RecipeUpdateRequest,
-  RecipeFavoriteAddRequest,
-  RecipeFavoriteRemoveRequest,
+  RecipeFavoriteToggleRequest,
+  ToggleResponse,
   RecipeFavoriteListResponse,
 } from '../types/recipe';
 import type {
@@ -184,14 +184,10 @@ export const updateMember = async (memberId: string, request: MemberUpdateReques
   await apiClient.put(`/members/admin/member/${memberId}`, request);
 };
 
-// 즐겨찾기 추가
-export const addFavorite = async (request: RecipeFavoriteAddRequest): Promise<void> => {
-  await apiClient.post('/recipe/recipe-favorites', request);
-};
-
-// 즐겨찾기 삭제
-export const removeFavorite = async (request: RecipeFavoriteRemoveRequest): Promise<void> => {
-  await apiClient.delete('/recipe/recipe-favorites', { data: request });
+// 즐겨찾기 토글
+export const toggleFavorite = async (request: RecipeFavoriteToggleRequest): Promise<ToggleResponse> => {
+  const { data } = await apiClient.post<ToggleResponse>('/recipe/recipe-favorites/toggle', request);
+  return data;
 };
 
 // 즐겨찾기 목록 조회
