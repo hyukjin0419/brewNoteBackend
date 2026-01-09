@@ -30,6 +30,8 @@ export interface RecipeDetailResponse {
   recipeId: string;
   title: string;
   category: string;
+  isNew?: boolean; // Jackson이 new로 직렬화할 수 있으므로 둘 다 확인 필요
+  new?: boolean; // Jackson 직렬화 대응
   hotThumbnailUrl?: string;
   iceThumbnailUrl?: string;
   alias?: string[];
@@ -48,6 +50,7 @@ export interface RecipeCreateRequest {
   franchiseId: string;
   title: string;
   category: string;
+  isNew?: boolean;
   hotImgUrl?: string;
   iceImgUrl?: string;
   alias: string[];
@@ -80,6 +83,7 @@ export interface FranchiseResponse {
 export interface RecipeUpdateRequest {
   title: string;
   category: string;
+  isNew?: boolean;
   hotThumbnailUrl?: string;
   iceThumbnailUrl?: string;
   alias: string[];

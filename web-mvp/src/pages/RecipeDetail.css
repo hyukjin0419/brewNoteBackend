@@ -59,6 +59,19 @@
   font-weight: 500;
 }
 
+.badge {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+.badge.new {
+  background-color: #ff6b6b;
+  color: white;
+}
+
 .favorite-button {
   background: none;
   border: none;

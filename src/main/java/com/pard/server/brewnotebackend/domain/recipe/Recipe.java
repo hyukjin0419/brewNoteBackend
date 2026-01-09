@@ -108,4 +108,12 @@ public class Recipe extends BaseEntity {
         this.category = category;
     }
 
+    public void markAsNew() {
+        this.isNew = true;
+    }
+
+    public void updateIsNew(boolean isNew) {
+        this.isNew = isNew;
+    }
+
 }

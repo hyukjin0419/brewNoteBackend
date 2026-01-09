@@ -39,12 +39,6 @@ apiClient.interceptors.request.use(
     const token = localStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, {
-        hasToken: !!token,
-        tokenPrefix: token.substring(0, 20) + '...',
-      });
-    } else {
-      console.warn(`[API Request] ${config.method?.toUpperCase()} ${config.url} - No token found`);
     }
     return config;
   },
@@ -57,12 +51,6 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('API Error:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      message: error.message,
-    });
     return Promise.reject(error);
   }
 );
@@ -82,39 +70,28 @@ export const getRecipes = async (params?: {
   category?: string;
   isNew?: boolean;
 }): Promise<RecipeSearchResponse[]> => {
-  console.log('🔍 getRecipes 호출:', params);
-  
   try {
+    // 디버깅: 전달되는 파라미터 확인
+    console.log('[getRecipes] 요청 파라미터:', params);
+    
     const { data } = await apiClient.get<any[]>('/recipe/recipes', {
       params: params || {},
     });
     
-    console.log('✅ getRecipes 응답:', data);
-    
     // RecipeDetailResponse를 RecipeSearchResponse로 변환
-    // 백엔드 RecipeDetailResponse에는 isSignature와 isNew가 없으므로 기본값 사용
-    // 하지만 isNew 필터는 백엔드에서 처리되므로 신메뉴만 반환됨
     const converted = data.map((item: any) => ({
       recipeId: item.recipeId,
       title: item.title,
       category: item.category as RecipeCategory,
-      isSignature: item.isSignature ?? false, // 백엔드에 없으면 false
-      isNew: params?.isNew ?? item.isNew ?? false, // 백엔드 필터링 결과 반영
+      isSignature: item.isSignature ?? false,
+      isNew: item.isNew ?? false, // 백엔드에서 isNew 필드 반영
       isFavorite: false, // 초기값, 나중에 즐겨찾기 상태로 업데이트됨
       hotThumbnailUrl: item.hotThumbnailUrl,
       iceThumbnailUrl: item.iceThumbnailUrl,
     }));
     
-    console.log('✅ 변환된 레시피:', converted);
     return converted;
   } catch (error: any) {
-    console.error('❌ getRecipes 에러:', {
-      message: error?.message,
-      response: error?.response?.data,
-      status: error?.response?.status,
-      url: error?.config?.url,
-      params: error?.config?.params,
-    });
     throw error;
   }
 };
@@ -122,18 +99,6 @@ export const getRecipes = async (params?: {
 // 레시피 상세 조회
 export const getRecipeDetail = async (recipeId: string): Promise<RecipeDetailResponse> => {
   const { data } = await apiClient.get<RecipeDetailResponse>(`/recipe/${recipeId}`);
-  
-  // API 응답에서 isDefault 값 확인
-  console.log('=== API 응답 확인 ===');
-  console.log('전체 응답:', data);
-  console.log('variants:', data.variants);
-  console.log('각 variant의 isDefault:', data.variants.map(v => ({
-    type: v.type,
-    isDefault: v.default,
-    isDefaultType: typeof v.default,
-    variantId: v.variantId,
-  })));
-  
   return data;
 };
 
@@ -231,32 +196,13 @@ export const updateMember = async (memberId: string, request: MemberUpdateReques
 
 // 즐겨찾기 토글
 export const toggleFavorite = async (request: RecipeFavoriteToggleRequest): Promise<ToggleResponse> => {
-  console.log('🔍 toggleFavorite 요청:', {
-    url: '/recipe/recipe-favorites/toggle',
-    method: 'POST',
-    data: request,
-    fullUrl: `${apiClient.defaults.baseURL}/recipe/recipe-favorites/toggle`,
-  });
-  
   const response = await apiClient.post<ToggleResponse>('/recipe/recipe-favorites/toggle', request);
-  
-  console.log('🔍 toggleFavorite 응답:', {
-    status: response.status,
-    statusText: response.statusText,
-    data: response.data,
-    headers: response.headers,
-  });
-  console.log('🔍 toggleFavorite response.data 타입:', typeof response.data);
-  console.log('🔍 toggleFavorite response.data.isFavorite:', response.data?.isFavorite);
-  console.log('🔍 toggleFavorite response.data.favorite:', (response.data as any)?.favorite);
-  console.log('🔍 toggleFavorite response.data keys:', response.data ? Object.keys(response.data) : 'null/undefined');
   
   // Jackson이 isFavorite를 favorite로 직렬화할 수 있으므로 둘 다 확인
   const data = response.data;
   if (data && typeof data === 'object') {
     // favorite 필드가 있으면 isFavorite로 매핑
     if ('favorite' in data && !('isFavorite' in data)) {
-      console.log('🔍 favorite 필드를 isFavorite로 매핑');
       return { isFavorite: Boolean((data as any).favorite) } as ToggleResponse;
     }
   }
@@ -266,23 +212,9 @@ export const toggleFavorite = async (request: RecipeFavoriteToggleRequest): Prom
 
 // 즐겨찾기 목록 조회
 export const getFavorites = async (cafeId: string): Promise<RecipeFavoriteListResponse> => {
-  console.log('🔍 getFavorites 요청:', {
-    url: '/recipe/recipe-favorites',
-    method: 'GET',
-    params: { cafeId },
-    fullUrl: `${apiClient.defaults.baseURL}/recipe/recipe-favorites?cafeId=${cafeId}`,
-  });
-  
   const response = await apiClient.get<RecipeFavoriteListResponse>('/recipe/recipe-favorites', {
     params: { cafeId },
   });
-  
-  console.log('🔍 getFavorites 응답:', {
-    status: response.status,
-    statusText: response.statusText,
-    data: response.data,
-  });
-  
   return response.data;
 };
 

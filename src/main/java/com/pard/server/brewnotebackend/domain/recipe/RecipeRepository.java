@@ -55,5 +55,5 @@ public interface RecipeRepository extends JpaRepository<Recipe, UUID> {
 
     List<Recipe> findByFranchiseIdAndCategoryAndIsHiddenFalseOrderByTitleAsc(UUID franchiseId, RecipeCategory category);
 
-    List<Recipe> findByFranchiseIdAndNewTrueAndIsHiddenFalseOrderByCreatedAtDesc(UUID franchiseId);
+    List<Recipe> findByFranchiseIdAndIsNewTrueAndIsHiddenFalseOrderByCreatedAtDesc(UUID franchiseId);
 }

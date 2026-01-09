@@ -35,7 +35,7 @@ public class RecipeServiceImpl implements RecipeService{
     @Override
     public void createRecipe(RecipeCreateRequest request) {
         UUID franchiseId = UuidUtils.parse(request.getFranchiseId());
-        //TODO 나중에 파라미터로 받와야하 함!, @CurrentUser 사용하기:)
+
         UUID creatorId = memberRepository.findByRole(MemberRoleType.ADMIN)
                 .orElseThrow(() -> new EntityNotFoundException("ADMIN을 찾을 수 없습니다.")).getId();
 
@@ -52,6 +52,9 @@ public class RecipeServiceImpl implements RecipeService{
                 GoogleDriveUtils.convertToDirectLink(request.getHotImgUrl()),
                 GoogleDriveUtils.convertToDirectLink(request.getIceImgUrl()),
                 RecipeCategory.valueOf(request.getCategory()));
+
+        // isNew 값 설정 (true/false 모두 처리)
+        recipe.updateIsNew(request.isNew());
 
         recipeRepository.save(recipe);
 
@@ -128,6 +131,10 @@ public class RecipeServiceImpl implements RecipeService{
         }
         if (request.getIceThumbnailUrl() != null) {
             recipe.updateIceThumbnailUrl(request.getIceThumbnailUrl());
+        }
+        // isNew는 Boolean 타입이므로 null이 아닐 때만 업데이트 (false도 유효한 값)
+        if (request.getIsNew() != null) {
+            recipe.updateIsNew(request.getIsNew());
         }
 
         if (request.getVariants() != null) {
@@ -407,6 +414,11 @@ public class RecipeServiceImpl implements RecipeService{
     @Override
     @Transactional(readOnly = true)
     public List<RecipeDetailResponse> getRecipes(RecipeDetailRequest request) {
+        log.info("REQ franchiseId={}, category={}, isNew={}",
+                request.getFranchiseId(),
+                request.getCategory(),
+                request.getIsNew());
+
         // 둘 다 없음
         if (request.getCategory() == null && request.getIsNew() == null) {
             throw new IllegalArgumentException("category 또는 isNew 중 하나는 필수입니다.");
@@ -418,18 +430,18 @@ public class RecipeServiceImpl implements RecipeService{
         }
 
         UUID franchiseId = UuidUtils.parse(request.getFranchiseId());
-        RecipeCategory category = RecipeCategory.valueOf(request.getCategory());
 
         List<Recipe> recipes = List.of();
 
         if (request.getCategory() != null) {
+            RecipeCategory category = RecipeCategory.valueOf(request.getCategory());
             recipes = recipeRepository
                     .findByFranchiseIdAndCategoryAndIsHiddenFalseOrderByTitleAsc(
                             franchiseId, category
                     );
         } else {
             recipes = recipeRepository
-                .findByFranchiseIdAndNewTrueAndIsHiddenFalseOrderByCreatedAtDesc(
+                .findByFranchiseIdAndIsNewTrueAndIsHiddenFalseOrderByCreatedAtDesc(
                         franchiseId
                 );
         }
@@ -539,33 +551,3 @@ public class RecipeServiceImpl implements RecipeService{
         );
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
