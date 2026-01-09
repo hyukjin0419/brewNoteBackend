@@ -3,6 +3,7 @@ package com.pard.server.brewnotebackend.global.security;
 import com.pard.server.brewnotebackend.domain.recipe.RecipeCreateRequest;
 import com.pard.server.brewnotebackend.global.security.jwt.login.LoginRequest;
 import com.pard.server.brewnotebackend.global.security.jwt.login.LoginResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,10 @@ public class AuthController {
 
     private final AuthService authService;
 
+    @Operation(
+            summary = "로그인",
+            description = "이메일과 비밀번호를 이용해 로그인하고 Access Token을 발급합니다."
+    )
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
         System.out.println("login 요청 객체 : " + request.getEmail());
@@ -30,14 +35,3 @@ public class AuthController {
     }
 
 }
-
-/*
-POST /auth/signup        // ADMIN / OWNER
-POST /auth/login
-POST /auth/activate      // STAFF
-POST /auth/change-password
-
-/admin/owners     → admin만 가능
-/owners/staff     → owner만 가능
-
- */
