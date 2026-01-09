@@ -8,6 +8,7 @@ import type {
   RecipeFavoriteToggleRequest,
   ToggleResponse,
   RecipeFavoriteListResponse,
+  RecipeCategory,
 } from '../types/recipe';
 import type {
   CafesResponse,
@@ -72,6 +73,50 @@ export const searchRecipes = async (keyword: string): Promise<RecipeSearchRespon
     params: { keyword },
   });
   return data;
+};
+
+// 레시피 목록 조회 (카테고리, 신메뉴 필터 지원)
+// 백엔드는 RecipeDetailResponse[]를 반환하지만, 프론트엔드에서는 RecipeSearchResponse[] 형태로 변환
+export const getRecipes = async (params?: {
+  franchiseId?: string;
+  category?: string;
+  isNew?: boolean;
+}): Promise<RecipeSearchResponse[]> => {
+  console.log('🔍 getRecipes 호출:', params);
+  
+  try {
+    const { data } = await apiClient.get<any[]>('/recipe/recipes', {
+      params: params || {},
+    });
+    
+    console.log('✅ getRecipes 응답:', data);
+    
+    // RecipeDetailResponse를 RecipeSearchResponse로 변환
+    // 백엔드 RecipeDetailResponse에는 isSignature와 isNew가 없으므로 기본값 사용
+    // 하지만 isNew 필터는 백엔드에서 처리되므로 신메뉴만 반환됨
+    const converted = data.map((item: any) => ({
+      recipeId: item.recipeId,
+      title: item.title,
+      category: item.category as RecipeCategory,
+      isSignature: item.isSignature ?? false, // 백엔드에 없으면 false
+      isNew: params?.isNew ?? item.isNew ?? false, // 백엔드 필터링 결과 반영
+      isFavorite: false, // 초기값, 나중에 즐겨찾기 상태로 업데이트됨
+      hotThumbnailUrl: item.hotThumbnailUrl,
+      iceThumbnailUrl: item.iceThumbnailUrl,
+    }));
+    
+    console.log('✅ 변환된 레시피:', converted);
+    return converted;
+  } catch (error: any) {
+    console.error('❌ getRecipes 에러:', {
+      message: error?.message,
+      response: error?.response?.data,
+      status: error?.response?.status,
+      url: error?.config?.url,
+      params: error?.config?.params,
+    });
+    throw error;
+  }
 };
 
 // 레시피 상세 조회
@@ -186,9 +231,21 @@ export const updateMember = async (memberId: string, request: MemberUpdateReques
 
 // 즐겨찾기 토글
 export const toggleFavorite = async (request: RecipeFavoriteToggleRequest): Promise<ToggleResponse> => {
+  console.log('🔍 toggleFavorite 요청:', {
+    url: '/recipe/recipe-favorites/toggle',
+    method: 'POST',
+    data: request,
+    fullUrl: `${apiClient.defaults.baseURL}/recipe/recipe-favorites/toggle`,
+  });
+  
   const response = await apiClient.post<ToggleResponse>('/recipe/recipe-favorites/toggle', request);
-  console.log('🔍 toggleFavorite API 응답 전체:', response);
-  console.log('🔍 toggleFavorite response.data:', response.data);
+  
+  console.log('🔍 toggleFavorite 응답:', {
+    status: response.status,
+    statusText: response.statusText,
+    data: response.data,
+    headers: response.headers,
+  });
   console.log('🔍 toggleFavorite response.data 타입:', typeof response.data);
   console.log('🔍 toggleFavorite response.data.isFavorite:', response.data?.isFavorite);
   console.log('🔍 toggleFavorite response.data.favorite:', (response.data as any)?.favorite);
@@ -199,6 +256,7 @@ export const toggleFavorite = async (request: RecipeFavoriteToggleRequest): Prom
   if (data && typeof data === 'object') {
     // favorite 필드가 있으면 isFavorite로 매핑
     if ('favorite' in data && !('isFavorite' in data)) {
+      console.log('🔍 favorite 필드를 isFavorite로 매핑');
       return { isFavorite: Boolean((data as any).favorite) } as ToggleResponse;
     }
   }
@@ -208,9 +266,23 @@ export const toggleFavorite = async (request: RecipeFavoriteToggleRequest): Prom
 
 // 즐겨찾기 목록 조회
 export const getFavorites = async (cafeId: string): Promise<RecipeFavoriteListResponse> => {
-  const { data } = await apiClient.get<RecipeFavoriteListResponse>('/recipe/recipe-favorites', {
+  console.log('🔍 getFavorites 요청:', {
+    url: '/recipe/recipe-favorites',
+    method: 'GET',
+    params: { cafeId },
+    fullUrl: `${apiClient.defaults.baseURL}/recipe/recipe-favorites?cafeId=${cafeId}`,
+  });
+  
+  const response = await apiClient.get<RecipeFavoriteListResponse>('/recipe/recipe-favorites', {
     params: { cafeId },
   });
-  return data;
+  
+  console.log('🔍 getFavorites 응답:', {
+    status: response.status,
+    statusText: response.statusText,
+    data: response.data,
+  });
+  
+  return response.data;
 };
 

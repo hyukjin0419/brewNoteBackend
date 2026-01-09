@@ -408,13 +408,13 @@ public class RecipeServiceImpl implements RecipeService{
     @Transactional(readOnly = true)
     public List<RecipeDetailResponse> getRecipes(RecipeDetailRequest request) {
         // 둘 다 없음
-        if (request.getCategory() == null && request.getFavorite() == null) {
-            throw new IllegalArgumentException("category 또는 favorite 중 하나는 필수입니다.");
+        if (request.getCategory() == null && request.getIsNew() == null) {
+            throw new IllegalArgumentException("category 또는 isNew 중 하나는 필수입니다.");
         }
 
         // 동시에 사용
-        if (request.getCategory() != null && Boolean.TRUE.equals(request.getFavorite())) {
-            throw new IllegalArgumentException("category와 favorite는 동시에 사용할 수 없습니다.");
+        if (request.getCategory() != null && Boolean.TRUE.equals(request.getIsNew())) {
+            throw new IllegalArgumentException("category와 isNeww 동시에 사용할 수 없습니다.");
         }
 
         UUID franchiseId = UuidUtils.parse(request.getFranchiseId());
@@ -428,10 +428,10 @@ public class RecipeServiceImpl implements RecipeService{
                             franchiseId, category
                     );
         } else {
-//            recipes = recipeRepository
-//                    .findByFavoriteRecipesByFranchiseIdAndMemberId(
-//                            franchiseId, memberId
-//                    )
+            recipes = recipeRepository
+                .findByFranchiseIdAndNewTrueAndIsHiddenFalseOrderByCreatedAtDesc(
+                        franchiseId
+                );
         }
 
         if (recipes.isEmpty()) {
