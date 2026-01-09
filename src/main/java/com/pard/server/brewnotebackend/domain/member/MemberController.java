@@ -1,6 +1,6 @@
 package com.pard.server.brewnotebackend.domain.member;
 
-import com.pard.server.brewnotebackend.domain.cafe_member.OwnersCafesResponse;
+import com.pard.server.brewnotebackend.domain.cafe_member.CafesResponse;
 import com.pard.server.brewnotebackend.global.security.currentUser.CurrentUser;
 import com.pard.server.brewnotebackend.global.security.currentUser.CustomUserDetails;
 import com.pard.server.brewnotebackend.global.utils.UuidUtils;
@@ -35,6 +35,7 @@ public class MemberController {
         return ResponseEntity.ok().build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/owners")
     public ResponseEntity<Page<OwnerSummaryResponse>> getOwners(
             @PageableDefault(
@@ -46,11 +47,13 @@ public class MemberController {
         return ResponseEntity.ok(memberService.getOwners(pageable));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/owners/{ownerId}")
     public ResponseEntity<OwnerDetailResponse> getOwner(@PathVariable String ownerId){
         return ResponseEntity.ok(memberService.getOwner(ownerId));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/admin/member/{memberId}")
     public ResponseEntity<Void> updateMember(@PathVariable String memberId, @RequestBody MemberUpdateRequest request) {
         memberService.updateMember(memberId, request);
@@ -60,7 +63,7 @@ public class MemberController {
 
     //======================= OWNER ========================//
     @GetMapping("/owner/cafes")
-    public ResponseEntity<OwnersCafesResponse> getOwnersCafes(
+    public ResponseEntity<CafesResponse> getOwnersCafes(
             @CurrentUser CustomUserDetails user
     )  {
         return ResponseEntity.ok(memberService.getOwnersCafes(user.getMemberId()));
@@ -88,7 +91,7 @@ public class MemberController {
         return ResponseEntity.ok(memberService.getStaffs(user.getMemberId(), UuidUtils.parse(cafeId), pageable));
     }
 
-    @GetMapping("/cafes/{cafeId}/staffs/{staffId}")
+    @GetMapping("/owner/cafes/{cafeId}/staffs/{staffId}")
     public ResponseEntity<StaffDetailResponse> getStaff(
             @CurrentUser CustomUserDetails user,
             @PathVariable String cafeId,
@@ -98,6 +101,15 @@ public class MemberController {
     }
 
     //======================= STAFF ========================//
+    @GetMapping("/staff/cafes")
+    public ResponseEntity<CafesResponse> getStaffCafes(
+            @CurrentUser CustomUserDetails user
+    ) {
+        return ResponseEntity.ok(memberService.getCafes(user.getMemberId()));
+    }
+
+    //
+
 }
 /*
 /admin/owners     → admin만 가능 (admin -> owners를 생성 status pending)

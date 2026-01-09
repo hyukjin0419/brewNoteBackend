@@ -135,7 +135,7 @@ export const createStaff = async (request: StaffCreateRequest): Promise<void> =>
 
 // 스태프 상세 조회
 export const getStaff = async (cafeId: string, staffId: string): Promise<StaffDetailResponse> => {
-  const { data } = await apiClient.get<StaffDetailResponse>(`/members/cafes/${cafeId}/staffs/${staffId}`);
+  const { data } = await apiClient.get<StaffDetailResponse>(`/members/owner/cafes/${cafeId}/staffs/${staffId}`);
   return data;
 };
 
