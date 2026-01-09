@@ -354,7 +354,11 @@ function StaffManagement() {
                     </thead>
                     <tbody>
                       {staffs.map((staff) => (
-                        <tr key={staff.cafeMemberId}>
+                        <tr 
+                          key={staff.cafeMemberId}
+                          className="staff-row"
+                          onClick={() => navigate(`/staffs/${selectedCafeId}/${staff.memberId}`)}
+                        >
                           <td>{staff.name}</td>
                           <td>{staff.nickName || '-'}</td>
                           <td>{staff.email}</td>

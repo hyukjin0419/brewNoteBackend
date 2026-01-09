@@ -99,3 +99,12 @@ export interface StaffCreateRequest {
   phoneNumber: string;
 }
 
+export interface StaffDetailResponse {
+  name: string;
+  nickName: string;
+  email: string;
+  phoneNumber: string;
+  role: CafeMemberRoleType;
+  status: CafeMemberStatus;
+}
+

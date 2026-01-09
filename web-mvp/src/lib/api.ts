@@ -10,6 +10,7 @@ import type {
   OwnersCafesResponse,
   StaffSummaryResponse,
   StaffCreateRequest,
+  StaffDetailResponse,
   PageResponse,
   OwnerSummaryResponse,
   OwnerDetailResponse,
@@ -34,6 +35,12 @@ apiClient.interceptors.request.use(
     const token = localStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, {
+        hasToken: !!token,
+        tokenPrefix: token.substring(0, 20) + '...',
+      });
+    } else {
+      console.warn(`[API Request] ${config.method?.toUpperCase()} ${config.url} - No token found`);
     }
     return config;
   },
@@ -124,6 +131,12 @@ export const getStaffs = async (
 // 스태프 생성
 export const createStaff = async (request: StaffCreateRequest): Promise<void> => {
   await apiClient.post('/members/owner/staffs', request);
+};
+
+// 스태프 상세 조회
+export const getStaff = async (cafeId: string, staffId: string): Promise<StaffDetailResponse> => {
+  const { data } = await apiClient.get<StaffDetailResponse>(`/members/cafes/${cafeId}/staffs/${staffId}`);
+  return data;
 };
 
 // 로그인
