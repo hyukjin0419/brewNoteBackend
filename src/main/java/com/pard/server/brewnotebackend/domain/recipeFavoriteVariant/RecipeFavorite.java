@@ -1,4 +1,4 @@
-package com.pard.server.brewnotebackend.domain.recipe;
+package com.pard.server.brewnotebackend.domain.recipeFavoriteVariant;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
