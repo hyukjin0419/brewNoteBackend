@@ -5,7 +5,6 @@ Blendery는 카페 매장에서 메뉴 레시피를 찾는 과정에서 발생�
 
 단순히 데이터를 저장하는 것이 아니라, 실제 매장 환경에서 쓰일 수 있는 구조를 목표로 했습니다.
 
-### 0.1 시현 및 Swagger
 - [해당 웹페이지](https://blendery5.netlify.app/)를 통하여 서버에서 산출한 api를 시험해보실 수 있습니다.
 - 로그인을 위한 이메일과 비밀번호는 부스에 있는 서버(최혁진)을 찾아주세요.
 - [Swagger UI 바로가기](https://blendery.store/swagger-ui/index.html  )
