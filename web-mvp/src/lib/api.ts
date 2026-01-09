@@ -71,6 +71,9 @@ export const getRecipes = async (params?: {
   isNew?: boolean;
 }): Promise<RecipeSearchResponse[]> => {
   try {
+    // 디버깅: 전달되는 파라미터 확인
+    console.log('[getRecipes] 요청 파라미터:', params);
+    
     const { data } = await apiClient.get<any[]>('/recipe/recipes', {
       params: params || {},
     });

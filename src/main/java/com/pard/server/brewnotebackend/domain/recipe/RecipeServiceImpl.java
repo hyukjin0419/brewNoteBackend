@@ -414,6 +414,11 @@ public class RecipeServiceImpl implements RecipeService{
     @Override
     @Transactional(readOnly = true)
     public List<RecipeDetailResponse> getRecipes(RecipeDetailRequest request) {
+        log.info("REQ franchiseId={}, category={}, isNew={}",
+                request.getFranchiseId(),
+                request.getCategory(),
+                request.getIsNew());
+
         // 둘 다 없음
         if (request.getCategory() == null && request.getIsNew() == null) {
             throw new IllegalArgumentException("category 또는 isNew 중 하나는 필수입니다.");
@@ -425,18 +430,18 @@ public class RecipeServiceImpl implements RecipeService{
         }
 
         UUID franchiseId = UuidUtils.parse(request.getFranchiseId());
-        RecipeCategory category = RecipeCategory.valueOf(request.getCategory());
 
         List<Recipe> recipes = List.of();
 
         if (request.getCategory() != null) {
+            RecipeCategory category = RecipeCategory.valueOf(request.getCategory());
             recipes = recipeRepository
                     .findByFranchiseIdAndCategoryAndIsHiddenFalseOrderByTitleAsc(
                             franchiseId, category
                     );
         } else {
             recipes = recipeRepository
-                .findByFranchiseIdAndNewTrueAndIsHiddenFalseOrderByCreatedAtDesc(
+                .findByFranchiseIdAndIsNewTrueAndIsHiddenFalseOrderByCreatedAtDesc(
                         franchiseId
                 );
         }

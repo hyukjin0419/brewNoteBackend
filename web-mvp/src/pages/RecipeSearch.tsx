@@ -152,59 +152,49 @@ function RecipeSearch() {
           }
         } else if (selectedFilter === 'NEW') {
           // 신메뉴는 백엔드 API 사용
-          // franchiseId가 필요한 경우를 대비해 모든 프랜차이즈 조회
+          // franchiseId는 항상 필수이므로 모든 프랜차이즈 조회
           try {
             const franchises = await getFranchises();
-            if (franchises && franchises.length > 0) {
-              // 모든 프랜차이즈의 신메뉴 조회
-              const allPromises = franchises.map((franchise) =>
-                getRecipes({ franchiseId: franchise.franchiseId, isNew: true })
-              );
-              const allResults = await Promise.all(allPromises);
-              const allRecipes = allResults.flat();
-              setFilteredRecipes(allRecipes);
-            } else {
-              // franchiseId 없이 시도
-              const data = await getRecipes({ isNew: true });
-              setFilteredRecipes(data);
+            console.log('[신메뉴 필터] 프랜차이즈 목록:', franchises);
+            if (!franchises || franchises.length === 0) {
+              console.warn('[신메뉴 필터] 프랜차이즈 목록이 비어있습니다.');
+              setFilteredRecipes([]);
+              return;
             }
+            
+            // 모든 프랜차이즈의 신메뉴 조회 (franchiseId 필수)
+            const allPromises = franchises.map((franchise) => {
+              console.log('[신메뉴 필터] 프랜차이즈별 요청:', { franchiseId: franchise.franchiseId, isNew: true });
+              return getRecipes({ franchiseId: franchise.franchiseId, isNew: true });
+            });
+            const allResults = await Promise.all(allPromises);
+            const allRecipes = allResults.flat();
+            setFilteredRecipes(allRecipes);
           } catch (error: any) {
-            console.error('신메뉴 조회 오류 (franchiseId 포함):', error);
-            // franchiseId 없이 재시도
-            try {
-              const data = await getRecipes({ isNew: true });
-              setFilteredRecipes(data);
-            } catch (retryError) {
-              throw retryError;
-            }
+            console.error('신메뉴 조회 오류:', error);
+            setFilteredRecipes([]);
           }
         } else {
           // 카테고리는 백엔드 API 사용
-          // franchiseId가 필요한 경우를 대비해 모든 프랜차이즈 조회
+          // franchiseId는 항상 필수이므로 모든 프랜차이즈 조회
           try {
             const franchises = await getFranchises();
-            if (franchises && franchises.length > 0) {
-              // 모든 프랜차이즈의 카테고리별 레시피 조회
-              const allPromises = franchises.map((franchise) =>
-                getRecipes({ franchiseId: franchise.franchiseId, category: selectedFilter })
-              );
-              const allResults = await Promise.all(allPromises);
-              const allRecipes = allResults.flat();
-              setFilteredRecipes(allRecipes);
-            } else {
-              // franchiseId 없이 시도
-              const data = await getRecipes({ category: selectedFilter });
-              setFilteredRecipes(data);
+            if (!franchises || franchises.length === 0) {
+              console.warn('[카테고리 필터] 프랜차이즈 목록이 비어있습니다.');
+              setFilteredRecipes([]);
+              return;
             }
+            
+            // 모든 프랜차이즈의 카테고리별 레시피 조회 (franchiseId 필수)
+            const allPromises = franchises.map((franchise) =>
+              getRecipes({ franchiseId: franchise.franchiseId, category: selectedFilter })
+            );
+            const allResults = await Promise.all(allPromises);
+            const allRecipes = allResults.flat();
+            setFilteredRecipes(allRecipes);
           } catch (error: any) {
-            console.error('카테고리 조회 오류 (franchiseId 포함):', error);
-            // franchiseId 없이 재시도
-            try {
-              const data = await getRecipes({ category: selectedFilter });
-              setFilteredRecipes(data);
-            } catch (retryError) {
-              throw retryError;
-            }
+            console.error('카테고리 조회 오류:', error);
+            setFilteredRecipes([]);
           }
         }
       } catch (error: any) {
