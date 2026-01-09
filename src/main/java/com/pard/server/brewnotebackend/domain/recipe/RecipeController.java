@@ -27,7 +27,6 @@ public class RecipeController {
 
     //등록
     //======================= ADMIN ========================//
-    //TODO: ADMIN APIs 권한 추가
     @PostMapping("/admin/recipe")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> createRecipe(@RequestBody RecipeCreateRequest request) {
@@ -65,9 +64,9 @@ public class RecipeController {
     public List<RecipeDetailResponse> getRecipes(
             @RequestParam(required = false) String franchiseId,
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) Boolean favorite
+            @RequestParam(required = false) Boolean isNew
     ) {
-        RecipeDetailRequest request = RecipeDetailRequest.of(franchiseId, category, favorite);
+        RecipeDetailRequest request = RecipeDetailRequest.of(franchiseId, category, isNew);
         return recipeService.getRecipes(request);
     }
 

@@ -605,7 +605,7 @@ function RecipeDetail() {
                   onClick={handleFavoriteToggle}
                   disabled={isLoadingFavorite}
                 >
-                  {isFavorite ? '★ 즐겨찾기 해제' : '☆ 즐겨찾기 추가'}
+                  {isFavorite ? '★' : '☆'}
                 </button>
               )}
             </div>

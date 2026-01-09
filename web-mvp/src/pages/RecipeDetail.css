@@ -60,30 +60,35 @@
 }
 
 .favorite-button {
-  background-color: #f0f0f0;
-  border: 2px solid #ddd;
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-size: 28px;
+  font-weight: normal;
   cursor: pointer;
   transition: all 0.2s;
+  color: #ddd;
+  line-height: 1;
+  width: auto;
+  height: auto;
+  display: inline-block;
+  vertical-align: middle;
   white-space: nowrap;
 }
 
 .favorite-button:hover:not(:disabled) {
-  background-color: #e0e0e0;
-  border-color: #ccc;
+  transform: scale(1.2);
+  color: #ffd700;
 }
 
 .favorite-button.active {
-  background-color: #ffd700;
-  border-color: #ffd700;
-  color: #333;
+  color: #ffd700;
 }
 
 .favorite-button.active:hover:not(:disabled) {
-  background-color: #ffed4e;
+  transform: scale(1.2);
+  color: #ffb700;
 }
 
 .favorite-button:disabled {

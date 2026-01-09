@@ -12,13 +12,13 @@ import lombok.NoArgsConstructor;
 public class RecipeDetailRequest {
     private String franchiseId;
     private String category;
-    private Boolean favorite;
+    private Boolean isNew;
 
     public static RecipeDetailRequest of(
             String franchiseId,
             String category,
-            Boolean favorite
+            Boolean isNew
     ) {
-        return new RecipeDetailRequest(franchiseId, category, favorite);
+        return new RecipeDetailRequest(franchiseId, category, isNew);
     }
 }

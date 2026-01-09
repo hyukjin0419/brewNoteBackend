@@ -1,17 +1,36 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { searchRecipes, toggleFavorite, getFavorites, getRecipeDetail } from '../lib/api';
-import type { RecipeSearchResponse } from '../types/recipe';
+import { searchRecipes, toggleFavorite, getFavorites, getRecipeDetail, getRecipes, getFranchises } from '../lib/api';
+import type { RecipeSearchResponse, RecipeCategory } from '../types/recipe';
 import { isOwner, isOwnerOrStaff, getCafes, getSelectedCafeId, setSelectedCafeId, removeToken, removeCafes, isAdmin, getRole, setCafes } from '../utils/auth';
 import { getOwnersCafes, getStaffCafes } from '../lib/api';
 import type { OwnedCafeSummary } from '../types/member';
 import './RecipeSearch.css';
 
+// 필터 타입 정의
+type FilterType = 'ALL' | 'FAVORITE' | 'NEW' | RecipeCategory;
+
+// 카테고리 라벨 매핑
+const categoryLabels: Record<RecipeCategory, string> = {
+  COFFEE: '커피',
+  COLD_BREW: '콜드브루',
+  DECAFEINE: '디카페인',
+  NON_COFFEE: '논커피',
+  BLENDED: '블렌디드',
+  TEA: '티',
+  ADE: '에이드 & 과일주스',
+  SOFT_ICE_CREAM: '소프트 아이스크림',
+  BREAD: '브레드/베이커리',
+};
+
 function RecipeSearch() {
   const [keyword, setKeyword] = useState('');
-  const [results, setResults] = useState<RecipeSearchResponse[]>([]);
+  const [searchResults, setSearchResults] = useState<RecipeSearchResponse[]>([]); // 검색 결과
+  const [filteredRecipes, setFilteredRecipes] = useState<RecipeSearchResponse[]>([]); // 필터 결과
   const [isLoading, setIsLoading] = useState(false);
-  const [showResults, setShowResults] = useState(false);
+  const [isSearching, setIsSearching] = useState(false); // 검색 중인지 여부
+  const [showSearchResults, setShowSearchResults] = useState(false); // 검색 결과 표시 여부
+  const [selectedFilter, setSelectedFilter] = useState<FilterType>('ALL');
   const navigate = useNavigate();
   const searchRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout>();
@@ -19,6 +38,7 @@ function RecipeSearch() {
   // 카페 관련 상태
   const [cafes, setCafesState] = useState<OwnedCafeSummary[]>([]);
   const [selectedCafeId, setSelectedCafeIdState] = useState<string>('');
+
 
   // 카페 목록 로드
   useEffect(() => {
@@ -83,7 +103,7 @@ function RecipeSearch() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
-        setShowResults(false);
+        setShowSearchResults(false);
       }
     };
 
@@ -91,28 +111,173 @@ function RecipeSearch() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // 필터 변경 시 레시피 목록 로드
+  useEffect(() => {
+    const loadFilteredRecipes = async () => {
+      try {
+        setIsLoading(true);
+
+        if (selectedFilter === 'ALL') {
+          // 전체 레시피: 파라미터 없이 호출 (백엔드가 전체 조회를 지원하는 경우)
+          // 백엔드가 파라미터를 요구하는 경우를 대비해 try-catch로 처리
+          try {
+            const data = await getRecipes();
+            setFilteredRecipes(data);
+          } catch (error: any) {
+            // 백엔드가 파라미터를 요구하는 경우, 모든 카테고리를 순회하여 조회
+            if (error?.response?.status === 400 || error?.message?.includes('필수')) {
+              console.log('백엔드가 파라미터를 요구하므로 모든 카테고리를 조회합니다.');
+              const allCategories: RecipeCategory[] = [
+                'COFFEE',
+                'COLD_BREW',
+                'DECAFEINE',
+                'NON_COFFEE',
+                'BLENDED',
+                'TEA',
+                'ADE',
+                'SOFT_ICE_CREAM',
+                'BREAD',
+              ];
+
+              const allPromises = allCategories.map((category) =>
+                getRecipes({ category })
+              );
+
+              const allResults = await Promise.all(allPromises);
+              const allRecipes = allResults.flat();
+              setFilteredRecipes(allRecipes);
+            } else {
+              throw error;
+            }
+          }
+        } else if (selectedFilter === 'FAVORITE') {
+          // 즐겨찾기는 /api/recipe/recipe-favorites/ GET API 사용
+          const selectedCafeId = getSelectedCafeId();
+          if (!selectedCafeId) {
+            setFilteredRecipes([]);
+            return;
+          }
+
+          try {
+            const favoritesData = await getFavorites(selectedCafeId);
+            // RecipeFavoriteListResponse를 RecipeSearchResponse[]로 변환
+            const convertedRecipes: RecipeSearchResponse[] = favoritesData.favorites.map((fav) => ({
+              recipeId: fav.recipeId,
+              title: fav.title,
+              category: fav.category as RecipeCategory,
+              isSignature: false, // 즐겨찾기 응답에 없으면 false
+              isNew: false, // 즐겨찾기 응답에 없으면 false
+              isFavorite: true, // 즐겨찾기 목록이므로 항상 true
+              hotThumbnailUrl: fav.hotThumbnailUrl,
+              iceThumbnailUrl: fav.iceThumbnailUrl,
+            }));
+            setFilteredRecipes(convertedRecipes);
+          } catch (error: any) {
+            console.error('즐겨찾기 목록 조회 오류:', error);
+            setFilteredRecipes([]);
+          }
+        } else if (selectedFilter === 'NEW') {
+          // 신메뉴는 백엔드 API 사용
+          // franchiseId가 필요한 경우를 대비해 모든 프랜차이즈 조회
+          try {
+            const franchises = await getFranchises();
+            if (franchises && franchises.length > 0) {
+              // 모든 프랜차이즈의 신메뉴 조회
+              const allPromises = franchises.map((franchise) =>
+                getRecipes({ franchiseId: franchise.franchiseId, isNew: true })
+              );
+              const allResults = await Promise.all(allPromises);
+              const allRecipes = allResults.flat();
+              setFilteredRecipes(allRecipes);
+            } else {
+              // franchiseId 없이 시도
+              const data = await getRecipes({ isNew: true });
+              setFilteredRecipes(data);
+            }
+          } catch (error: any) {
+            console.error('신메뉴 조회 오류 (franchiseId 포함):', error);
+            // franchiseId 없이 재시도
+            try {
+              const data = await getRecipes({ isNew: true });
+              setFilteredRecipes(data);
+            } catch (retryError) {
+              throw retryError;
+            }
+          }
+        } else {
+          // 카테고리는 백엔드 API 사용
+          // franchiseId가 필요한 경우를 대비해 모든 프랜차이즈 조회
+          try {
+            const franchises = await getFranchises();
+            if (franchises && franchises.length > 0) {
+              // 모든 프랜차이즈의 카테고리별 레시피 조회
+              const allPromises = franchises.map((franchise) =>
+                getRecipes({ franchiseId: franchise.franchiseId, category: selectedFilter })
+              );
+              const allResults = await Promise.all(allPromises);
+              const allRecipes = allResults.flat();
+              setFilteredRecipes(allRecipes);
+            } else {
+              // franchiseId 없이 시도
+              const data = await getRecipes({ category: selectedFilter });
+              setFilteredRecipes(data);
+            }
+          } catch (error: any) {
+            console.error('카테고리 조회 오류 (franchiseId 포함):', error);
+            // franchiseId 없이 재시도
+            try {
+              const data = await getRecipes({ category: selectedFilter });
+              setFilteredRecipes(data);
+            } catch (retryError) {
+              throw retryError;
+            }
+          }
+        }
+      } catch (error: any) {
+        console.error('레시피 목록 조회 오류:', error);
+        console.error('에러 상세:', {
+          message: error?.message,
+          response: error?.response?.data,
+          status: error?.response?.status,
+          url: error?.config?.url,
+          params: error?.config?.params,
+        });
+        setFilteredRecipes([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadFilteredRecipes();
+  }, [selectedFilter]);
+
+  // 검색어 변경 시 검색 (필터와 완전히 독립적)
   useEffect(() => {
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
 
     if (keyword.trim() === '') {
-      setResults([]);
-      setShowResults(false);
+      // 검색어가 없으면 검색 결과 초기화
+      setSearchResults([]);
+      setShowSearchResults(false);
+      setIsSearching(false);
       return;
     }
 
+    setIsSearching(true);
     setIsLoading(true);
     timeoutRef.current = setTimeout(async () => {
       try {
         const data = await searchRecipes(keyword);
-        setResults(data);
-        setShowResults(true);
+        setSearchResults(data);
+        setShowSearchResults(true);
       } catch (error) {
         console.error('검색 오류:', error);
-        setResults([]);
+        setSearchResults([]);
       } finally {
         setIsLoading(false);
+        setIsSearching(false);
       }
     }, 300); // 300ms 디바운스
 
@@ -125,7 +290,7 @@ function RecipeSearch() {
 
   const handleRecipeClick = (recipeId: string) => {
     navigate(`/recipes/${recipeId}`);
-    setShowResults(false);
+    setShowSearchResults(false);
   };
 
   const handleCreateClick = () => {
@@ -170,15 +335,17 @@ function RecipeSearch() {
     // 이전 상태 저장 (롤백용) - Boolean으로 강제 변환하여 undefined 방지
     const prevFavorite = Boolean(recipe.isFavorite);
     
-    // 낙관적 업데이트: UI를 먼저 업데이트
+    // 낙관적 업데이트: UI를 먼저 업데이트 (검색 결과와 필터 결과 모두 업데이트)
     const optimisticValue = !prevFavorite;
-    setResults((prev) =>
-      prev.map((item) =>
-        item.recipeId === recipe.recipeId
-          ? { ...item, isFavorite: Boolean(optimisticValue) }
-          : item
-      )
-    );
+    const updateRecipe = (item: RecipeSearchResponse) =>
+      item.recipeId === recipe.recipeId
+        ? { ...item, isFavorite: Boolean(optimisticValue) }
+        : item;
+
+    if (keyword.trim() !== '') {
+      setSearchResults((prev) => prev.map(updateRecipe));
+    }
+    setFilteredRecipes((prev) => prev.map(updateRecipe));
 
     try {
       // 레시피 상세 정보를 조회하여 기본 variant ID 가져오기
@@ -187,13 +354,15 @@ function RecipeSearch() {
       
       if (!defaultVariant) {
         // 에러 발생 시 롤백
-        setResults((prev) =>
-          prev.map((item) =>
-            item.recipeId === recipe.recipeId
-              ? { ...item, isFavorite: prevFavorite }
-              : item
-          )
-        );
+        const rollbackRecipe = (item: RecipeSearchResponse) =>
+          item.recipeId === recipe.recipeId
+            ? { ...item, isFavorite: prevFavorite }
+            : item;
+
+        if (keyword.trim() !== '') {
+          setSearchResults((prev) => prev.map(rollbackRecipe));
+        }
+        setFilteredRecipes((prev) => prev.map(rollbackRecipe));
         alert('레시피 variant를 찾을 수 없습니다.');
         return;
       }
@@ -223,22 +392,26 @@ function RecipeSearch() {
       }
 
       // 서버 응답으로 상태 확정 (진실의 소스)
-      setResults((prev) =>
-        prev.map((item) =>
-          item.recipeId === recipe.recipeId
-            ? { ...item, isFavorite: favoriteValue }
-            : item
-        )
-      );
+      const updateRecipeWithFavorite = (item: RecipeSearchResponse) =>
+        item.recipeId === recipe.recipeId
+          ? { ...item, isFavorite: favoriteValue }
+          : item;
+
+      if (keyword.trim() !== '') {
+        setSearchResults((prev) => prev.map(updateRecipeWithFavorite));
+      }
+      setFilteredRecipes((prev) => prev.map(updateRecipeWithFavorite));
     } catch (err: any) {
       // 에러 발생 시 낙관적 업데이트 롤백
-      setResults((prev) =>
-        prev.map((item) =>
-          item.recipeId === recipe.recipeId
-            ? { ...item, isFavorite: prevFavorite }
-            : item
-        )
-      );
+      const rollbackRecipe = (item: RecipeSearchResponse) =>
+        item.recipeId === recipe.recipeId
+          ? { ...item, isFavorite: prevFavorite }
+          : item;
+
+      if (keyword.trim() !== '') {
+        setSearchResults((prev) => prev.map(rollbackRecipe));
+      }
+      setFilteredRecipes((prev) => prev.map(rollbackRecipe));
       
       console.error('❌ 즐겨찾기 오류:', err);
       const errorMessage = err?.response?.data?.message ||
@@ -249,10 +422,16 @@ function RecipeSearch() {
     }
   };
 
-  // 검색 결과 로드 시 즐겨찾기 상태 확인
+  // 즐겨찾기 상태 로드 (검색 결과와 필터 결과 모두)
+  // 단, 즐겨찾기 필터 선택 시에는 이미 isFavorite: true로 설정되어 있으므로 스킵
   useEffect(() => {
-    const loadFavoriteStatus = async () => {
-      if (!isOwnerOrStaff() || results.length === 0) return;
+    // 즐겨찾기 필터 선택 시에는 스킵 (이미 getFavorites API로 목록을 가져왔고 isFavorite: true로 설정됨)
+    if (selectedFilter === 'FAVORITE') {
+      return;
+    }
+
+    const loadFavoriteStatus = async (recipes: RecipeSearchResponse[], setRecipes: (recipes: RecipeSearchResponse[]) => void) => {
+      if (!isOwnerOrStaff() || recipes.length === 0) return;
 
       const selectedCafeId = getSelectedCafeId();
       if (!selectedCafeId) return;
@@ -263,25 +442,50 @@ function RecipeSearch() {
           favoritesData.favorites.map((fav) => fav.recipeId)
         );
 
-        // results 상태를 업데이트하여 즐겨찾기 상태 반영
-        // Boolean으로 강제 변환하여 undefined 방지
-        setResults((prev) =>
-          prev.map((item) => ({
+        // 즐겨찾기 상태 반영 (이미 즐겨찾기인 경우 업데이트하지 않음)
+        const updatedRecipes = recipes.map((item) => {
+          const isFav = Boolean(favoriteRecipeIds.has(item.recipeId));
+          // 이미 같은 값이면 업데이트하지 않음 (무한 루프 방지)
+          if (item.isFavorite === isFav) {
+            return item;
+          }
+          return {
             ...item,
-            isFavorite: Boolean(favoriteRecipeIds.has(item.recipeId)),
-          }))
-        );
+            isFavorite: isFav,
+          };
+        });
+
+        // 실제로 변경된 항목이 있는 경우에만 업데이트
+        const hasChanges = updatedRecipes.some((item, index) => item !== recipes[index]);
+        if (hasChanges) {
+          setRecipes(updatedRecipes);
+        }
       } catch (err) {
         console.error('즐겨찾기 상태 조회 오류:', err);
       }
     };
 
-    // 검색 결과가 있을 때만 즐겨찾기 상태 확인
-    if (results.length > 0 && !isLoading) {
-      loadFavoriteStatus();
+    // 검색 결과와 필터 결과 모두에 즐겨찾기 상태 적용
+    if (!isLoading && !isSearching) {
+      if (keyword.trim() !== '' && searchResults.length > 0) {
+        loadFavoriteStatus(searchResults, setSearchResults);
+      } else if (filteredRecipes.length > 0 && (selectedFilter as FilterType) !== 'FAVORITE') {
+        // 즐겨찾기 필터가 아닐 때만 실행
+        loadFavoriteStatus(filteredRecipes, setFilteredRecipes);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keyword, results.length]); // keyword나 results.length가 변경될 때만 실행
+  }, [keyword, searchResults.length, selectedCafeId, selectedFilter]); // filteredRecipes.length 제거하여 무한 루프 방지
+
+  // 즐겨찾기 필터 적용 (클라이언트에서)
+  // 즐겨찾기 상태가 로드된 후에 필터링
+  useEffect(() => {
+    if (selectedFilter === 'FAVORITE') {
+      // 즐겨찾기 상태가 업데이트된 후 필터링
+      // 이 useEffect는 즐겨찾기 상태 로드 useEffect 이후에 실행됨
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFilter]);
 
   return (
     <div className="recipe-search-page">
@@ -323,6 +527,7 @@ function RecipeSearch() {
           </div>
         </div>
 
+        {/* 검색창 (검색 전용) */}
         <div className="search-box" ref={searchRef}>
           <input
             type="text"
@@ -330,46 +535,156 @@ function RecipeSearch() {
             placeholder="레시피를 검색하세요..."
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
-            onFocus={() => results.length > 0 && setShowResults(true)}
+            onFocus={() => searchResults.length > 0 && setShowSearchResults(true)}
           />
-          {isLoading && <div className="loading-indicator">검색 중...</div>}
+          {isSearching && <div className="loading-indicator">검색 중...</div>}
 
-          {showResults && results.length > 0 && (
+          {/* 검색 결과 표시 (검색어가 있을 때만) */}
+          {showSearchResults && searchResults.length > 0 && keyword.trim() !== '' && (
             <div className="search-results">
-              {results.map((recipe) => (
-                <div
-                  key={recipe.recipeId}
-                  className="result-item"
-                  onClick={() => handleRecipeClick(recipe.recipeId)}
-                >
-                  <div className="result-content">
-                    <div className="result-title">{recipe.title}</div>
-                    <div className="result-meta">
-                      <span className="category">{recipe.category}</span>
-                      {recipe.isSignature && <span className="badge signature">시그니처</span>}
-                      {recipe.isNew && <span className="badge new">신규</span>}
+              {searchResults.map((recipe) => {
+                // 썸네일 이미지 URL 결정 (HOT 우선, 없으면 ICE)
+                const thumbnailUrl = recipe.hotThumbnailUrl || recipe.iceThumbnailUrl;
+                
+                return (
+                  <div
+                    key={recipe.recipeId}
+                    className="result-item"
+                    onClick={() => handleRecipeClick(recipe.recipeId)}
+                  >
+                    {thumbnailUrl && (
+                      <div className="search-result-thumbnail">
+                        <img 
+                          src={thumbnailUrl} 
+                          alt={recipe.title}
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div className="result-content">
+                      <div className="result-title">{recipe.title}</div>
+                      <div className="result-meta">
+                        <span className="category">{recipe.category}</span>
+                        {recipe.isSignature && <span className="badge signature">시그니처</span>}
+                        {recipe.isNew && <span className="badge new">신규</span>}
+                      </div>
                     </div>
                   </div>
-                  {isOwnerOrStaff() && getSelectedCafeId() && (
-                    <button
-                      className={`favorite-button ${recipe.isFavorite ? 'active' : ''}`}
-                      onClick={(e) => handleFavoriteToggle(e, recipe)}
-                      title={recipe.isFavorite ? '즐겨찾기 해제' : '즐겨찾기 추가'}
-                    >
-                      {recipe.isFavorite ? '★' : '☆'}
-                    </button>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
-          {showResults && !isLoading && results.length === 0 && keyword.trim() !== '' && (
+          {showSearchResults && !isSearching && searchResults.length === 0 && keyword.trim() !== '' && (
             <div className="search-results">
               <div className="no-results">검색 결과가 없습니다.</div>
             </div>
           )}
         </div>
+
+        {/* 필터 탭 및 레시피 목록 (검색어가 없을 때만 표시) */}
+        {keyword.trim() === '' && (
+          <>
+            <div className="filter-tabs">
+              <button
+                className={`filter-tab ${selectedFilter === 'ALL' ? 'active' : ''}`}
+                onClick={() => setSelectedFilter('ALL')}
+              >
+                전체
+              </button>
+              <button
+                className={`filter-tab ${selectedFilter === 'FAVORITE' ? 'active' : ''}`}
+                onClick={() => setSelectedFilter('FAVORITE')}
+                disabled={!isOwnerOrStaff()}
+              >
+                즐겨찾기
+              </button>
+              <button
+                className={`filter-tab ${selectedFilter === 'NEW' ? 'active' : ''}`}
+                onClick={() => setSelectedFilter('NEW')}
+              >
+                신메뉴
+              </button>
+              {(Object.keys(categoryLabels) as RecipeCategory[]).map((category) => (
+                <button
+                  key={category}
+                  className={`filter-tab ${selectedFilter === category ? 'active' : ''}`}
+                  onClick={() => setSelectedFilter(category)}
+                >
+                  {categoryLabels[category]}
+                </button>
+              ))}
+            </div>
+
+            {/* 레시피 목록 표시 */}
+            {isLoading && (
+              <div className="loading-indicator" style={{ marginTop: '20px' }}>로딩 중...</div>
+            )}
+
+            {!isLoading && filteredRecipes.length > 0 && (
+              <div className="recipe-list">
+                {filteredRecipes.map((recipe) => {
+                  // 썸네일 이미지 URL 결정 (HOT 우선, 없으면 ICE)
+                  const thumbnailUrl = recipe.hotThumbnailUrl || recipe.iceThumbnailUrl;
+                  
+                  return (
+                    <div
+                      key={recipe.recipeId}
+                      className="result-item"
+                      onClick={() => handleRecipeClick(recipe.recipeId)}
+                    >
+                      {thumbnailUrl && (
+                        <div className="recipe-thumbnail">
+                          <img 
+                            src={thumbnailUrl} 
+                            alt={recipe.title}
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                          />
+                        </div>
+                      )}
+                      <div className="result-content">
+                        <div className="result-title">{recipe.title}</div>
+                        <div className="result-meta">
+                          <span className="category">{recipe.category}</span>
+                          {recipe.isSignature && <span className="badge signature">시그니처</span>}
+                          {recipe.isNew && <span className="badge new">신규</span>}
+                        </div>
+                      </div>
+                      {/* 즐겨찾기 필터에서만 즐겨찾기 별표 표시 (recipeVariants 레벨이므로) */}
+                      {selectedFilter === 'FAVORITE' && isOwnerOrStaff() && getSelectedCafeId() && (
+                        <button
+                          className={`favorite-button ${recipe.isFavorite ? 'active' : ''}`}
+                          onClick={(e) => handleFavoriteToggle(e, recipe)}
+                          title={recipe.isFavorite ? '즐겨찾기 해제' : '즐겨찾기 추가'}
+                        >
+                          {recipe.isFavorite ? '★' : '☆'}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {!isLoading && filteredRecipes.length === 0 && (
+              <div className="recipe-list">
+                <div className="no-results">
+                  {selectedFilter === 'FAVORITE' 
+                    ? '즐겨찾기한 레시피가 없습니다.' 
+                    : selectedFilter === 'NEW'
+                    ? '신메뉴가 없습니다.'
+                    : selectedFilter !== 'ALL'
+                    ? '해당 카테고리의 레시피가 없습니다.'
+                    : '레시피가 없습니다.'}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
