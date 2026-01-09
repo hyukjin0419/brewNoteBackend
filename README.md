@@ -6,11 +6,11 @@ Blendery는 카페 매장에서 메뉴 레시피를 찾는 과정에서 발생�
 단순히 데이터를 저장하는 것이 아니라, 실제 매장 환경에서 쓰일 수 있는 구조를 목표로 했습니다.
 
 ### 0.1 시현 및 Swagger
-https://blendery5.netlify.app/
-- 해당 웹페이지를 통하여 서버에서 산출한 api를 시험해보실 수 있습니다.
+- [해당 웹페이지](https://blendery5.netlify.app/)를 통하여 서버에서 산출한 api를 시험해보실 수 있습니다.
 - 로그인을 위한 이메일과 비밀번호는 부스에 있는 서버(최혁진)을 찾아주세요.
+- [Swagger UI 바로가기](https://blendery.store/swagger-ui/index.html  )
 
-https://blendery.store/swagger-ui/index.html  
+
 
 ## 1. 서버 설계에서 가장 먼저 고민한 문제들
 단순한 CRUD 구현이 아니라, 카페 운영 환경에서 실제로 불편한 지점을 서버에서 어떻게 풀 수 있을지를 먼저 고민했습니다.
@@ -32,7 +32,8 @@ https://blendery.store/swagger-ui/index.html
 
 
 ## 2. ERD 및 데이터 구조 설계
-[<img width="2625" height="1053" alt="스크린샷 2026-01-10 오전 1 27 45" src="https://github.com/user-attachments/assets/7ac3f564-8b53-4f76-94da-4c92aa49c34a" />](https://dbdiagram.io/d/691fce14228c5bbc1ad659f3)](https://dbdiagram.io/d/691fce14228c5bbc1ad659f3)
+[![ERD](https://github.com/user-attachments/assets/7ac3f564-8b53-4f76-94da-4c92aa49c34a)](https://dbdiagram.io/d/691fce14228c5bbc1ad659f3)
+
 
 - 위 ERD는 레시피를 옵션 단위로 관리하고, 카페 소속에 따라 접근 권한이 달라지는 구조를 중심으로 설계되었습니다.
 - 분기된 레시피(Variant)에 대해 카페에 소속된 사용자(CafeMember)만 즐겨찾기를 추가할 수 있도록 구성했습니다.
