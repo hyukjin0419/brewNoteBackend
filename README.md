@@ -32,7 +32,8 @@ https://blendery.store/swagger-ui/index.html
 
 
 ## 2. ERD 및 데이터 구조 설계
-[![ERD](https://dbdiagram.io/d/691fce14228c5bbc1ad659f3)](https://dbdiagram.io/d/691fce14228c5bbc1ad659f3)
+[<img width="2625" height="1053" alt="스크린샷 2026-01-10 오전 1 27 45" src="https://github.com/user-attachments/assets/7ac3f564-8b53-4f76-94da-4c92aa49c34a" />](https://dbdiagram.io/d/691fce14228c5bbc1ad659f3)](https://dbdiagram.io/d/691fce14228c5bbc1ad659f3)
+
 - 위 ERD는 레시피를 옵션 단위로 관리하고, 카페 소속에 따라 접근 권한이 달라지는 구조를 중심으로 설계되었습니다.
 - 분기된 레시피(Variant)에 대해 카페에 소속된 사용자(CafeMember)만 즐겨찾기를 추가할 수 있도록 구성했습니다.
 
@@ -72,8 +73,7 @@ https://blendery.store/swagger-ui/index.html
 - 이 기능들은 검색을 대체하기보다는, 검색 이후의 반복적인 탐색 비용을 줄일 수 있는 보조 수단으로 설계되었습니다.
 
 
-# 5. 기술 스택
-## 5. Tech Stack
+## 5. 기술 스택
 
 | Category | Stack |
 |---------|-------|
@@ -87,3 +87,19 @@ https://blendery.store/swagger-ui/index.html
 | **API Documentation** | ![Swagger](https://img.shields.io/badge/Swagger-API_Docs-85EA2D?style=for-the-badge&logo=swagger&logoColor=black) |
 
 
+## 6.  개신 예정 사항 (MVP 이후)
+- Blendery는 현재 MVP 단계로, 실제 매장 환경에서의 사용 가능성을 검증하는 데 집중해 구현되었습니다. 그 과정에서 일부 기능은 의도적으로 제외하거나 단순화했습니다.
+
+  1. Refresh Token 도입
+     - 현재 인증 구조는 Access Token 중심으로 구성되어 있습니다.
+     - 실제 운영 환경에서는 Refresh Token을 도입해, 보안 및 인증 안정성을 개선할 예정입니다.
+  2. 이메일 인증 단계 추가
+     - 현재는 계정 발급 이후 바로 로그인할 수 있도록, 인증 단계를 단순화한 상태입니다.
+     - 이는 부스 시연 과정에서 계정 생성과 테스트를 빠르게 진행하기 위한 선택이었습니다.
+     - 실제 서비스 단계에서는 이메일 인증 절차를 추가해, 계쩡 발급 및 접근을 보다 안전하게 관리할 계획입니다.
+  3. Staff 관리 정책 정교화
+     - 현재는 카페 구성원 (Staff)의 역할을 단순화해 관리하고 있습니다.
+     - 실제 매장 운영 방식에 따라, Staff의 권한이나 역할 정책은 더 세분화될 가능성이 있다고 판단하고 있씁니다.
+     - 이 부분은 점주님들과의 추가적인 논의를 통해 명확한 규칙과 정책이 정리된 이후 반영할 예정입니다.
+
+=> 1,2번은 이미 이전 프로젝트에서 구현한 경험이 있습니다. 관련 구현은 [해당 저장소](https://github.com/hyukjin0419/studyGroupBackEnd/blob/main/README.md)에서 확인하실 수 있습니다.
