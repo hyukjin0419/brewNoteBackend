@@ -247,7 +247,12 @@
   border-bottom: 1px solid #f0f0f0;
 }
 
-.staff-table tbody tr:hover {
+.staff-table tbody tr.staff-row {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.staff-table tbody tr.staff-row:hover {
   background-color: #f8f9fa;
 }
 

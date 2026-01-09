@@ -2,10 +2,7 @@ package com.pard.server.brewnotebackend.domain.member;
 
 import com.pard.server.brewnotebackend.domain.cafe.Cafe;
 import com.pard.server.brewnotebackend.domain.cafe.CafeRepository;
-import com.pard.server.brewnotebackend.domain.cafe_member.CafeMember;
-import com.pard.server.brewnotebackend.domain.cafe_member.CafeMemberRepository;
-import com.pard.server.brewnotebackend.domain.cafe_member.CafeMemberRoleType;
-import com.pard.server.brewnotebackend.domain.cafe_member.OwnersCafesResponse;
+import com.pard.server.brewnotebackend.domain.cafe_member.*;
 import com.pard.server.brewnotebackend.global.exception.BusinessException;
 import com.pard.server.brewnotebackend.global.exception.ErrorCode;
 import com.pard.server.brewnotebackend.global.utils.UuidUtils;
@@ -143,7 +140,7 @@ public class MemberServiceImpl implements MemberService{
         String tempPassword = "1234";
         String encodedPassword = passwordEncoder.encode(tempPassword);
 
-        Member staff = request.toMemberEntity();
+        Member staff = request.toMemberEntity(encodedPassword);
         memberRepository.save(staff);
 
         UUID cafeUuid = UuidUtils.parse(request.getCafeId());
@@ -193,7 +190,7 @@ public class MemberServiceImpl implements MemberService{
     }
 
     @Override
-    public OwnersCafesResponse getOwnersCafes(UUID memberId) {
+    public CafesResponse getOwnersCafes(UUID memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new EntityNotFoundException("회원이 존재하지 않습니다"));
 
@@ -209,17 +206,64 @@ public class MemberServiceImpl implements MemberService{
         Map<UUID, Cafe> cafeMap = cafeRepository.findAllById(cafeIds).stream()
                 .collect(Collectors.toMap(Cafe::getId, Function.identity()));
 
-        List<OwnersCafesResponse.OwnedCafeSummary> ownedCafes =
+        List<CafeSummary> ownedCafes =
                 cafeIds.stream()
                         .map(cafeId -> {
                             Cafe cafe = cafeMap.get(cafeId);
-                            return OwnersCafesResponse.OwnedCafeSummary.from(
+                            return CafeSummary.from(
                                     cafe.getId().toString(),
                                     cafe.getName()
                             );
                         }).toList();
 
-        return OwnersCafesResponse.from(
+        return CafesResponse.from(
+                ownedCafes
+        );
+    }
+
+    @Override
+    public StaffDetailResponse getStaff(UUID ownerId, UUID cafeId, UUID staffId) {
+        CafeMember ownerCafeMember = cafeMemberRepository.findByMemberIdAndCafeIdAndRole(ownerId, cafeId, CafeMemberRoleType.OWNER)
+                    .orElseThrow(() -> new IllegalStateException("해당 카페의 점주가 아닙니다."));
+
+        // 2. staff가 해당 카페 소속인지 확인
+        CafeMember staffCafeMember = cafeMemberRepository
+                .findByMemberIdAndCafeId(staffId, cafeId)
+                .orElseThrow(() -> new EntityNotFoundException("해당 카페의 스태프가 아닙니다."));
+
+        // 3. staff Member 정보 조회
+        Member staff = memberRepository.findById(staffId)
+                .orElseThrow(() -> new EntityNotFoundException("스태프 정보를 찾을 수 없습니다."));
+
+        // 4. Response 생성 (DTO 내부 builder 사용)
+        return StaffDetailResponse.from(staff, staffCafeMember);
+    }
+
+    @Override
+    public CafesResponse getCafes(UUID memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new EntityNotFoundException("회원이 존재하지 않습니다"));
+
+        List<CafeMember> cafeMembers = cafeMemberRepository.findByMemberId(memberId);
+
+        List<UUID> cafeIds = cafeMembers.stream()
+                .map(CafeMember::getCafeId)
+                .toList();
+
+        Map<UUID, Cafe> cafeMap = cafeRepository.findAllById(cafeIds).stream()
+                .collect(Collectors.toMap(Cafe::getId, Function.identity()));
+
+        List<CafeSummary> ownedCafes =
+                cafeIds.stream()
+                        .map(cafeId -> {
+                            Cafe cafe = cafeMap.get(cafeId);
+                            return CafeSummary.from(
+                                    cafe.getId().toString(),
+                                    cafe.getName()
+                            );
+                        }).toList();
+
+        return CafesResponse.from(
                 ownedCafes
         );
     }

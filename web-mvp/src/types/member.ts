@@ -58,14 +58,18 @@ export interface PageResponse<T> {
 }
 
 // 점주 카페 목록
-export interface OwnersCafesResponse {
-  ownedCafes: OwnedCafeSummary[];
+export interface CafesResponse {
+  cafes: CafeSummary[];
 }
 
-export interface OwnedCafeSummary {
+export interface CafeSummary {
   cafeId: string;
   CafeName: string;
 }
+
+// 호환성을 위한 별칭 (기존 코드에서 사용 중)
+export type OwnersCafesResponse = CafesResponse;
+export type OwnedCafeSummary = CafeSummary;
 
 // 스태프 관련
 export enum CafeMemberRoleType {
@@ -97,5 +101,14 @@ export interface StaffCreateRequest {
   email: string;
   name: string;
   phoneNumber: string;
+}
+
+export interface StaffDetailResponse {
+  name: string;
+  nickName: string;
+  email: string;
+  phoneNumber: string;
+  role: CafeMemberRoleType;
+  status: CafeMemberStatus;
 }
 

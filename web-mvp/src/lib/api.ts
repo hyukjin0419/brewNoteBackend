@@ -5,11 +5,16 @@ import type {
   RecipeFormDataResponse,
   RecipeCreateRequest,
   RecipeUpdateRequest,
+  RecipeFavoriteAddRequest,
+  RecipeFavoriteRemoveRequest,
+  RecipeFavoriteListResponse,
 } from '../types/recipe';
 import type {
+  CafesResponse,
   OwnersCafesResponse,
   StaffSummaryResponse,
   StaffCreateRequest,
+  StaffDetailResponse,
   PageResponse,
   OwnerSummaryResponse,
   OwnerDetailResponse,
@@ -34,6 +39,12 @@ apiClient.interceptors.request.use(
     const token = localStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`, {
+        hasToken: !!token,
+        tokenPrefix: token.substring(0, 20) + '...',
+      });
+    } else {
+      console.warn(`[API Request] ${config.method?.toUpperCase()} ${config.url} - No token found`);
     }
     return config;
   },
@@ -104,8 +115,14 @@ export const deleteRecipe = async (recipeId: string): Promise<void> => {
 };
 
 // 점주 카페 목록 조회
-export const getOwnersCafes = async (): Promise<OwnersCafesResponse> => {
-  const { data } = await apiClient.get<OwnersCafesResponse>('/members/owner/cafes');
+export const getOwnersCafes = async (): Promise<CafesResponse> => {
+  const { data } = await apiClient.get<CafesResponse>('/members/owner/cafes');
+  return data;
+};
+
+// 스태프 카페 목록 조회
+export const getStaffCafes = async (): Promise<CafesResponse> => {
+  const { data } = await apiClient.get<CafesResponse>('/members/staff/cafes');
   return data;
 };
 
@@ -124,6 +141,12 @@ export const getStaffs = async (
 // 스태프 생성
 export const createStaff = async (request: StaffCreateRequest): Promise<void> => {
   await apiClient.post('/members/owner/staffs', request);
+};
+
+// 스태프 상세 조회
+export const getStaff = async (cafeId: string, staffId: string): Promise<StaffDetailResponse> => {
+  const { data } = await apiClient.get<StaffDetailResponse>(`/members/owner/cafes/${cafeId}/staffs/${staffId}`);
+  return data;
 };
 
 // 로그인
@@ -160,5 +183,23 @@ export const createOwner = async (request: CreateOwnerRequest): Promise<void> =>
 // 점주 정보 수정
 export const updateMember = async (memberId: string, request: MemberUpdateRequest): Promise<void> => {
   await apiClient.put(`/members/admin/member/${memberId}`, request);
+};
+
+// 즐겨찾기 추가
+export const addFavorite = async (request: RecipeFavoriteAddRequest): Promise<void> => {
+  await apiClient.post('/recipe/recipe-favorites', request);
+};
+
+// 즐겨찾기 삭제
+export const removeFavorite = async (request: RecipeFavoriteRemoveRequest): Promise<void> => {
+  await apiClient.delete('/recipe/recipe-favorites', { data: request });
+};
+
+// 즐겨찾기 목록 조회
+export const getFavorites = async (cafeId: string): Promise<RecipeFavoriteListResponse> => {
+  const { data } = await apiClient.get<RecipeFavoriteListResponse>('/recipe/recipe-favorites', {
+    params: { cafeId },
+  });
+  return data;
 };
 

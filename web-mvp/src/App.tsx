@@ -4,6 +4,7 @@ import RecipeSearch from './pages/RecipeSearch';
 import RecipeDetail from './pages/RecipeDetail';
 import RecipeCreate from './pages/RecipeCreate';
 import StaffManagement from './pages/StaffManagement';
+import StaffDetail from './pages/StaffDetail';
 import OwnerManagement from './pages/OwnerManagement';
 import OwnerDetail from './pages/OwnerDetail';
 import Login from './pages/Login';
@@ -63,6 +64,10 @@ function App() {
         <Route
           path="/staffs"
           element={authenticated ? <StaffManagement /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/staffs/:cafeId/:staffId"
+          element={authenticated ? <StaffDetail /> : <Navigate to="/login" replace />}
         />
         <Route
           path="/owners"

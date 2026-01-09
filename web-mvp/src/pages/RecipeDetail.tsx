@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getRecipeDetail, updateRecipe, getRecipeFormData, deleteRecipe } from '../lib/api';
-import { isAdmin } from '../utils/auth';
+import { getRecipeDetail, updateRecipe, getRecipeFormData, deleteRecipe, addFavorite, removeFavorite, getFavorites } from '../lib/api';
 import type { 
   RecipeDetailResponse, 
   VariantResponse, 
@@ -9,6 +8,7 @@ import type {
   RecipeFormDataResponse,
   VariantRequest,
 } from '../types/recipe';
+import { isOwnerOrStaff, getSelectedCafeId, isAdmin } from '../utils/auth';
 import './RecipeDetail.css';
 
 function RecipeDetail() {
@@ -21,6 +21,8 @@ function RecipeDetail() {
   const [error, setError] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isLoadingFavorite, setIsLoadingFavorite] = useState(false);
 
   // 수정 모드 폼 상태
   const [editForm, setEditForm] = useState<RecipeUpdateRequest>({
@@ -104,8 +106,80 @@ function RecipeDetail() {
     fetchData();
   }, [recipeId]);
 
+  // 즐겨찾기 상태 확인 (점주/스태프인 경우)
+  useEffect(() => {
+    const fetchFavoriteStatus = async () => {
+      if (!isOwnerOrStaff()) return; // 점주/스태프만 즐겨찾기 가능
+      
+      const selectedCafeId = getSelectedCafeId();
+      if (!selectedCafeId || !recipe || !selectedVariant) return;
+
+      try {
+        // 즐겨찾기 목록 조회해서 현재 variant가 즐겨찾기되어 있는지 확인
+        const favoritesData = await getFavorites(selectedCafeId);
+        const isFav = favoritesData.favorites.some(
+          fav => fav.recipeId === recipe.recipeId && 
+                 fav.variant.variantId === selectedVariant.variantId
+        );
+        setIsFavorite(isFav);
+      } catch (err) {
+        console.error('즐겨찾기 상태 조회 오류:', err);
+      }
+    };
+
+    if (recipe && selectedVariant) {
+      fetchFavoriteStatus();
+    }
+  }, [recipe, selectedVariant]);
+
   const handleVariantClick = (variant: VariantResponse) => {
     setSelectedVariant(variant);
+    // variant 변경 시 즐겨찾기 상태도 다시 확인
+    setIsFavorite(false); // 일단 false로 설정하고 useEffect에서 다시 확인
+  };
+
+  // 즐겨찾기 추가/삭제 핸들러
+  const handleFavoriteToggle = async () => {
+    if (!isOwnerOrStaff()) {
+      alert('즐겨찾기는 점주/스태프만 사용할 수 있습니다.');
+      return;
+    }
+
+    const selectedCafeId = getSelectedCafeId();
+    if (!selectedCafeId || !recipe || !selectedVariant) {
+      alert('카페를 선택해주세요.');
+      return;
+    }
+
+    try {
+      setIsLoadingFavorite(true);
+      
+      if (isFavorite) {
+        // 즐겨찾기 삭제
+        await removeFavorite({
+          cafeId: selectedCafeId,
+          recipeVariantId: selectedVariant.variantId,
+        });
+        setIsFavorite(false);
+      } else {
+        // 즐겨찾기 추가
+        await addFavorite({
+          cafeId: selectedCafeId,
+          recipeId: recipe.recipeId,
+          recipeVariantId: selectedVariant.variantId,
+        });
+        setIsFavorite(true);
+      }
+    } catch (err: any) {
+      console.error('즐겨찾기 오류:', err);
+      const errorMessage = err?.response?.data?.message ||
+                          err?.response?.data?.error ||
+                          err?.message ||
+                          '즐겨찾기 처리에 실패했습니다.';
+      alert(`즐겨찾기 처리에 실패했습니다.\n${errorMessage}`);
+    } finally {
+      setIsLoadingFavorite(false);
+    }
   };
 
   // variant type에 따라 적절한 썸네일 URL 반환
@@ -407,8 +481,19 @@ function RecipeDetail() {
           // 조회 모드
           <>
             <div className="recipe-header">
-              <h1>{recipe.title}</h1>
-              <span className="category-badge">{recipe.category}</span>
+              <div className="recipe-title-section">
+                <h1>{recipe.title}</h1>
+                <span className="category-badge">{recipe.category}</span>
+              </div>
+              {isOwnerOrStaff() && getSelectedCafeId() && (
+                <button
+                  className={`favorite-button ${isFavorite ? 'active' : ''}`}
+                  onClick={handleFavoriteToggle}
+                  disabled={isLoadingFavorite}
+                >
+                  {isFavorite ? '★ 즐겨찾기 해제' : '☆ 즐겨찾기 추가'}
+                </button>
+              )}
             </div>
 
             <div className="thumbnail-section">

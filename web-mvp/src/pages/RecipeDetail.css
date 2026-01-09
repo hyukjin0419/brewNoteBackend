@@ -29,16 +29,25 @@
 .recipe-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 16px;
   margin-bottom: 40px;
   padding-bottom: 20px;
   border-bottom: 2px solid #f0f0f0;
 }
 
+.recipe-title-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
 .recipe-header h1 {
   font-size: 36px;
   font-weight: 600;
   color: #333;
+  margin: 0;
 }
 
 .category-badge {
@@ -48,6 +57,38 @@
   border-radius: 6px;
   font-size: 14px;
   font-weight: 500;
+}
+
+.favorite-button {
+  background-color: #f0f0f0;
+  border: 2px solid #ddd;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.favorite-button:hover:not(:disabled) {
+  background-color: #e0e0e0;
+  border-color: #ccc;
+}
+
+.favorite-button.active {
+  background-color: #ffd700;
+  border-color: #ffd700;
+  color: #333;
+}
+
+.favorite-button.active:hover:not(:disabled) {
+  background-color: #ffed4e;
+}
+
+.favorite-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .thumbnail-section {

@@ -22,4 +22,16 @@ public interface CafeMemberRepository extends JpaRepository<CafeMember,Long> {
 
     List<CafeMember> findByMemberIdAndRole(UUID memberId, CafeMemberRoleType roleType);
 
+    Optional<CafeMember> findByMemberIdAndCafeIdAndRole(
+            UUID memberId,
+            UUID cafeId,
+            CafeMemberRoleType role
+    );
+
+    Optional<CafeMember> findByMemberIdAndCafeId(
+            UUID memberId,
+            UUID cafeId
+    );
+
+
 }
