@@ -83,3 +83,36 @@ export interface RecipeUpdateRequest {
   variants: VariantRequest[];
 }
 
+// 즐겨찾기 관련 타입
+export interface RecipeFavoriteAddRequest {
+  cafeId: string;
+  recipeId: string;
+  recipeVariantId: number;
+}
+
+export interface RecipeFavoriteRemoveRequest {
+  cafeId: string;
+  recipeVariantId: number;
+}
+
+export interface RecipeFavoriteListResponse {
+  cafeId: string;
+  favorites: RecipeFavoriteItem[];
+}
+
+export interface RecipeFavoriteItem {
+  recipeId: string;
+  title: string;
+  category: string;
+  hotThumbnailUrl?: string;
+  iceThumbnailUrl?: string;
+  variant: RecipeFavoriteVariant;
+}
+
+export interface RecipeFavoriteVariant {
+  variantId: number;
+  type: RecipeOptionType;
+  isDefault: boolean;
+  steps: string[];
+}
+

@@ -36,10 +36,10 @@ function StaffManagement() {
         
         // 먼저 localStorage에서 카페 목록 확인
         const savedCafesJson = getCafes();
-        if (savedCafesJson) {
+        if (savedCafesJson && savedCafesJson !== 'undefined' && savedCafesJson !== 'null') {
           try {
             const savedCafes: OwnedCafeSummary[] = JSON.parse(savedCafesJson);
-            if (savedCafes.length > 0) {
+            if (savedCafes && Array.isArray(savedCafes) && savedCafes.length > 0) {
               setCafes(savedCafes);
               const savedCafeId = getSelectedCafeId() || savedCafes[0].cafeId;
               setSelectedCafeId(savedCafeId); // state 업데이트
@@ -57,17 +57,21 @@ function StaffManagement() {
         
         // 저장된 데이터가 없으면 API 호출
         const data = await getOwnersCafes();
-        setCafes(data.ownedCafes); // state 업데이트
-        
-        // 카페 목록을 localStorage에 저장
-        saveCafes(JSON.stringify(data.ownedCafes));
-        
-        // 첫 번째 카페를 기본 선택
-        if (data.ownedCafes.length > 0) {
-          const firstCafeId = data.ownedCafes[0].cafeId;
-          setSelectedCafeId(firstCafeId); // state 업데이트
-          saveSelectedCafeId(firstCafeId); // localStorage 저장
-          setCreateForm(prev => ({ ...prev, cafeId: firstCafeId }));
+        if (data && data.cafes && Array.isArray(data.cafes)) {
+          setCafes(data.cafes); // state 업데이트
+          
+          // 카페 목록을 localStorage에 저장
+          saveCafes(JSON.stringify(data.cafes));
+          
+          // 첫 번째 카페를 기본 선택
+          if (data.cafes.length > 0) {
+            const firstCafeId = data.cafes[0].cafeId;
+            setSelectedCafeId(firstCafeId); // state 업데이트
+            saveSelectedCafeId(firstCafeId); // localStorage 저장
+            setCreateForm(prev => ({ ...prev, cafeId: firstCafeId }));
+          }
+        } else {
+          throw new Error('카페 목록 데이터 형식이 올바르지 않습니다.');
         }
       } catch (err: any) {
         console.error('카페 목록 조회 오류:', err);
@@ -204,25 +208,6 @@ function StaffManagement() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="staff-management-page">
-        <div className="loading">로딩 중...</div>
-      </div>
-    );
-  }
-
-  if (error && cafes.length === 0) {
-    return (
-      <div className="staff-management-page">
-        <div className="error">{error}</div>
-        <button className="back-button" onClick={() => navigate('/')}>
-          돌아가기
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="staff-management-page">
       <div className="management-container">
@@ -240,166 +225,185 @@ function StaffManagement() {
           </button>
         </div>
 
-        {cafes.length > 0 && (
-          <div className="cafe-selector">
-            <label htmlFor="cafe-select">매장 선택</label>
-            <select
-              id="cafe-select"
-              value={selectedCafeId}
-              onChange={(e) => handleCafeChange(e.target.value)}
-              className="cafe-select"
-            >
-              {cafes.map((cafe) => (
-                <option key={cafe.cafeId} value={cafe.cafeId}>
-                  {cafe.CafeName}
-                </option>
-              ))}
-            </select>
+        {isLoading && cafes.length === 0 ? (
+          <div className="loading" style={{ padding: '40px', textAlign: 'center' }}>로딩 중...</div>
+        ) : null}
+
+        {error && (
+          <div className="error-message" style={{ marginBottom: '20px', padding: '12px', backgroundColor: '#fee', color: '#c33', borderRadius: '6px' }}>
+            {error}
           </div>
         )}
 
-        {showCreateForm && (
-          <div className="create-form-section">
-            <h2>스태프 생성</h2>
-            <form onSubmit={handleCreateSubmit} className="staff-create-form">
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="email">이메일 <span className="required">*</span></label>
-                  <input
-                    id="email"
-                    type="email"
-                    value={createForm.email}
-                    onChange={(e) => handleCreateFormChange('email', e.target.value)}
-                    placeholder="이메일을 입력하세요"
-                    disabled={isSubmitting}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label htmlFor="name">이름 <span className="required">*</span></label>
-                  <input
-                    id="name"
-                    type="text"
-                    value={createForm.name}
-                    onChange={(e) => handleCreateFormChange('name', e.target.value)}
-                    placeholder="이름을 입력하세요"
-                    disabled={isSubmitting}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="phone">전화번호 <span className="required">*</span></label>
-                  <input
-                    id="phone"
-                    type="tel"
-                    value={createForm.phoneNumber}
-                    onChange={(e) => handleCreateFormChange('phoneNumber', e.target.value)}
-                    placeholder="전화번호를 입력하세요"
-                    disabled={isSubmitting}
-                    required
-                  />
-                </div>
-              </div>
-              <div className="form-actions">
-                <button
-                  type="button"
-                  className="cancel-button"
-                  onClick={() => {
-                    setShowCreateForm(false);
-                    setCreateForm({
-                      cafeId: selectedCafeId,
-                      email: '',
-                      name: '',
-                      phoneNumber: '',
-                    });
-                  }}
-                  disabled={isSubmitting}
-                >
-                  취소
-                </button>
-                <button
-                  type="submit"
-                  className="submit-button"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? '생성 중...' : '생성하기'}
-                </button>
-              </div>
-            </form>
+        {!isLoading && cafes.length === 0 && !error ? (
+          <div className="empty-state" style={{ padding: '40px', textAlign: 'center' }}>
+            <p>카페 목록을 불러올 수 없습니다.</p>
+            <button className="back-button" onClick={() => navigate('/')}>
+              돌아가기
+            </button>
           </div>
-        )}
+        ) : cafes.length > 0 ? (
+          <>
+            <div className="cafe-selector">
+              <label htmlFor="cafe-select">매장 선택</label>
+              <select
+                id="cafe-select"
+                value={selectedCafeId}
+                onChange={(e) => handleCafeChange(e.target.value)}
+                className="cafe-select"
+              >
+                {cafes.map((cafe) => (
+                  <option key={cafe.cafeId} value={cafe.cafeId}>
+                    {cafe.CafeName}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-        {selectedCafeId && (
-          <div className="staff-list-section">
-            <h2>스태프 목록</h2>
-            {isLoadingStaffs ? (
-              <div className="loading">로딩 중...</div>
-            ) : staffs.length === 0 ? (
-              <div className="empty-state">등록된 스태프가 없습니다.</div>
-            ) : (
-              <>
-                <div className="staff-table-container">
-                  <table className="staff-table">
-                    <thead>
-                      <tr>
-                        <th>이름</th>
-                        <th>닉네임</th>
-                        <th>이메일</th>
-                        <th>전화번호</th>
-                        <th>역할</th>
-                        <th>상태</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {staffs.map((staff) => (
-                        <tr 
-                          key={staff.cafeMemberId}
-                          className="staff-row"
-                          onClick={() => navigate(`/staffs/${selectedCafeId}/${staff.memberId}`)}
-                        >
-                          <td>{staff.name}</td>
-                          <td>{staff.nickName || '-'}</td>
-                          <td>{staff.email}</td>
-                          <td>{staff.phoneNumber || '-'}</td>
-                          <td>{staff.role}</td>
-                          <td>
-                            <span className={`status-badge ${getStatusBadgeClass(staff.status)}`}>
-                              {getStatusLabel(staff.status)}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {totalPages > 1 && (
-                  <div className="pagination">
+            {showCreateForm && (
+              <div className="create-form-section">
+                <h2>스태프 생성</h2>
+                <form onSubmit={handleCreateSubmit} className="staff-create-form">
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="email">이메일 <span className="required">*</span></label>
+                      <input
+                        id="email"
+                        type="email"
+                        value={createForm.email}
+                        onChange={(e) => handleCreateFormChange('email', e.target.value)}
+                        placeholder="이메일을 입력하세요"
+                        disabled={isSubmitting}
+                        required
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label htmlFor="name">이름 <span className="required">*</span></label>
+                      <input
+                        id="name"
+                        type="text"
+                        value={createForm.name}
+                        onChange={(e) => handleCreateFormChange('name', e.target.value)}
+                        placeholder="이름을 입력하세요"
+                        disabled={isSubmitting}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="form-row">
+                    <div className="form-group">
+                      <label htmlFor="phone">전화번호 <span className="required">*</span></label>
+                      <input
+                        id="phone"
+                        type="tel"
+                        value={createForm.phoneNumber}
+                        onChange={(e) => handleCreateFormChange('phoneNumber', e.target.value)}
+                        placeholder="전화번호를 입력하세요"
+                        disabled={isSubmitting}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div className="form-actions">
                     <button
-                      className="pagination-button"
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 0}
+                      type="button"
+                      className="cancel-button"
+                      onClick={() => {
+                        setShowCreateForm(false);
+                        setCreateForm({
+                          cafeId: selectedCafeId,
+                          email: '',
+                          name: '',
+                          phoneNumber: '',
+                        });
+                      }}
+                      disabled={isSubmitting}
                     >
-                      이전
+                      취소
                     </button>
-                    <span className="pagination-info">
-                      {currentPage + 1} / {totalPages} (총 {totalElements}명)
-                    </span>
                     <button
-                      className="pagination-button"
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage >= totalPages - 1}
+                      type="submit"
+                      className="submit-button"
+                      disabled={isSubmitting}
                     >
-                      다음
+                      {isSubmitting ? '생성 중...' : '생성하기'}
                     </button>
                   </div>
-                )}
-              </>
+                </form>
+              </div>
             )}
-          </div>
-        )}
+
+            {selectedCafeId && (
+              <div className="staff-list-section">
+                <h2>스태프 목록</h2>
+                {isLoadingStaffs ? (
+                  <div className="loading">로딩 중...</div>
+                ) : staffs.length === 0 ? (
+                  <div className="empty-state">등록된 스태프가 없습니다.</div>
+                ) : (
+                  <>
+                    <div className="staff-table-container">
+                      <table className="staff-table">
+                        <thead>
+                          <tr>
+                            <th>이름</th>
+                            <th>닉네임</th>
+                            <th>이메일</th>
+                            <th>전화번호</th>
+                            <th>역할</th>
+                            <th>상태</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {staffs.map((staff) => (
+                            <tr 
+                              key={staff.cafeMemberId}
+                              className="staff-row"
+                              onClick={() => navigate(`/staffs/${selectedCafeId}/${staff.memberId}`)}
+                            >
+                              <td>{staff.name}</td>
+                              <td>{staff.nickName || '-'}</td>
+                              <td>{staff.email}</td>
+                              <td>{staff.phoneNumber || '-'}</td>
+                              <td>{staff.role}</td>
+                              <td>
+                                <span className={`status-badge ${getStatusBadgeClass(staff.status)}`}>
+                                  {getStatusLabel(staff.status)}
+                                </span>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {totalPages > 1 && (
+                      <div className="pagination">
+                        <button
+                          className="pagination-button"
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 0}
+                        >
+                          이전
+                        </button>
+                        <span className="pagination-info">
+                          {currentPage + 1} / {totalPages} (총 {totalElements}명)
+                        </span>
+                        <button
+                          className="pagination-button"
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage >= totalPages - 1}
+                        >
+                          다음
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </>
+        ) : null}
       </div>
     </div>
   );

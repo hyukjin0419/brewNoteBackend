@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { searchRecipes } from '../lib/api';
 import type { RecipeSearchResponse } from '../types/recipe';
-import { isOwner, getCafes, getSelectedCafeId, setSelectedCafeId, removeToken, removeCafes, isAdmin } from '../utils/auth';
+import { isOwner, isOwnerOrStaff, getCafes, getSelectedCafeId, setSelectedCafeId, removeToken, removeCafes, isAdmin, getRole, setCafes } from '../utils/auth';
+import { getOwnersCafes, getStaffCafes } from '../lib/api';
 import type { OwnedCafeSummary } from '../types/member';
 import './RecipeSearch.css';
 
@@ -21,12 +22,15 @@ function RecipeSearch() {
 
   // 카페 목록 로드
   useEffect(() => {
-    if (isOwner()) {
+    const loadCafes = async () => {
+      if (!isOwnerOrStaff()) return;
+
+      // 먼저 localStorage에서 카페 목록 확인
       const cafesJson = getCafes();
-      if (cafesJson) {
+      if (cafesJson && cafesJson !== 'undefined' && cafesJson !== 'null') {
         try {
           const cafesData: OwnedCafeSummary[] = JSON.parse(cafesJson);
-          if (cafesData.length > 0) {
+          if (cafesData && Array.isArray(cafesData) && cafesData.length > 0) {
             setCafesState(cafesData);
             const savedCafeId = getSelectedCafeId();
             if (savedCafeId && cafesData.some(c => c.cafeId === savedCafeId)) {
@@ -37,12 +41,43 @@ function RecipeSearch() {
               setSelectedCafeIdState(firstCafeId);
               setSelectedCafeId(firstCafeId);
             }
+            return; // 저장된 데이터 사용
           }
         } catch (error) {
           console.error('카페 목록 파싱 오류:', error);
         }
       }
-    }
+
+      // localStorage에 없으면 API 호출
+      try {
+        const role = getRole();
+        let cafesData;
+        if (role === 'USER') {
+          cafesData = await getOwnersCafes();
+        } else if (role === 'STAFF') {
+          cafesData = await getStaffCafes();
+        } else {
+          return;
+        }
+
+        if (cafesData && cafesData.cafes && Array.isArray(cafesData.cafes)) {
+          setCafesState(cafesData.cafes);
+          // 카페 목록을 localStorage에 저장
+          setCafes(JSON.stringify(cafesData.cafes));
+          
+          // 첫 번째 카페를 기본 선택
+          if (cafesData.cafes.length > 0) {
+            const firstCafeId = cafesData.cafes[0].cafeId;
+            setSelectedCafeIdState(firstCafeId);
+            setSelectedCafeId(firstCafeId);
+          }
+        }
+      } catch (error) {
+        console.error('카페 목록 조회 오류:', error);
+      }
+    };
+
+    loadCafes();
   }, []);
 
   useEffect(() => {
@@ -123,7 +158,7 @@ function RecipeSearch() {
         <div className="search-header">
           <h1>레시피 검색</h1>
           <div className="header-actions">
-            {isOwner() && cafes.length > 0 && (
+            {isOwnerOrStaff() && cafes.length > 0 && (
               <select
                 className="cafe-select"
                 value={selectedCafeId || cafes[0]?.cafeId || ''}

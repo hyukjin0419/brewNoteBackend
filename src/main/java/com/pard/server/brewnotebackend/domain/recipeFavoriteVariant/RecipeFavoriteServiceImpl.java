@@ -4,6 +4,7 @@ package com.pard.server.brewnotebackend.domain.recipeFavoriteVariant;
 import com.pard.server.brewnotebackend.domain.cafe_member.CafeMember;
 import com.pard.server.brewnotebackend.domain.cafe_member.CafeMemberRepository;
 import com.pard.server.brewnotebackend.domain.recipe.*;
+import com.pard.server.brewnotebackend.global.utils.UuidUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +34,7 @@ public class RecipeFavoriteServiceImpl implements RecipeFavoriteService{
     @Override
     public void addFavorite(UUID memberId, RecipeFavoriteVariantRequest.Add request) {
 
-        CafeMember cafeMember = cafeMemberRepository.findById(request.getCafeMemberId())
+        CafeMember cafeMember = cafeMemberRepository.findByMemberIdAndCafeId(memberId, UuidUtils.parse(request.getCafeId()))
                 .orElseThrow(() ->
                         new EntityNotFoundException("CafeMember not found"));
 
@@ -43,7 +44,7 @@ public class RecipeFavoriteServiceImpl implements RecipeFavoriteService{
 
         boolean exists =
                 favoriteRepository.existsByCafeMemberIdAndRecipeVariantId(
-                        request.getCafeMemberId(),
+                        cafeMember.getId(),
                         request.getRecipeVariantId()
                 );
 
@@ -53,8 +54,8 @@ public class RecipeFavoriteServiceImpl implements RecipeFavoriteService{
 
         favoriteRepository.save(
                 RecipeFavoriteVariant.builder()
-                        .cafeMemberId(request.getCafeMemberId())
-                        .recipeId(request.getRecipeId())
+                        .cafeMemberId(cafeMember.getId())
+                        .recipeId(UuidUtils.parse(request.getRecipeId()))
                         .recipeVariantId(request.getRecipeVariantId())
                         .build()
         );
@@ -67,7 +68,7 @@ public class RecipeFavoriteServiceImpl implements RecipeFavoriteService{
     public void removeFavorite(UUID memberId,
                                RecipeFavoriteVariantRequest.Remove request) {
 
-        CafeMember cafeMember = cafeMemberRepository.findById(request.getCafeMemberId())
+        CafeMember cafeMember = cafeMemberRepository.findByMemberIdAndCafeId(memberId, UuidUtils.parse(request.getCafeId()))
                 .orElseThrow(() ->
                         new EntityNotFoundException("CafeMember not found"));
 
@@ -76,7 +77,7 @@ public class RecipeFavoriteServiceImpl implements RecipeFavoriteService{
         }
 
         favoriteRepository.deleteByCafeMemberIdAndRecipeVariantId(
-                request.getCafeMemberId(),
+                cafeMember.getId(),
                 request.getRecipeVariantId()
         );
     }

@@ -140,7 +140,7 @@ public class MemberServiceImpl implements MemberService{
         String tempPassword = "1234";
         String encodedPassword = passwordEncoder.encode(tempPassword);
 
-        Member staff = request.toMemberEntity();
+        Member staff = request.toMemberEntity(encodedPassword);
         memberRepository.save(staff);
 
         UUID cafeUuid = UuidUtils.parse(request.getCafeId());

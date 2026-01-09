@@ -7,6 +7,6 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   accessToken: string;
-  role: 'ADMIN' | 'USER'; // 백엔드 MemberRoleType: ADMIN, USER
+  role: 'ADMIN' | 'USER' | 'STAFF'; // 백엔드 MemberRoleType: ADMIN, USER, STAFF
 }
 

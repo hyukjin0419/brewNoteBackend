@@ -30,7 +30,29 @@ export const isAdmin = (): boolean => {
 };
 
 export const isOwner = (): boolean => {
-  return getRole() === 'USER';
+  // 점주는 USER role이고 카페 목록이 있어야 함
+  if (getRole() !== 'USER') {
+    return false;
+  }
+  // 카페 목록이 있으면 점주, 없으면 스태프
+  const cafesJson = getCafes();
+  if (!cafesJson || cafesJson === 'undefined' || cafesJson === 'null') {
+    return false;
+  }
+  try {
+    const cafes = JSON.parse(cafesJson);
+    return Array.isArray(cafes) && cafes.length > 0;
+  } catch {
+    return false;
+  }
+};
+
+export const isStaff = (): boolean => {
+  return getRole() === 'STAFF';
+};
+
+export const isOwnerOrStaff = (): boolean => {
+  return isOwner() || isStaff();
 };
 
 // 카페 목록 저장/조회

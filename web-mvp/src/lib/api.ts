@@ -5,8 +5,12 @@ import type {
   RecipeFormDataResponse,
   RecipeCreateRequest,
   RecipeUpdateRequest,
+  RecipeFavoriteAddRequest,
+  RecipeFavoriteRemoveRequest,
+  RecipeFavoriteListResponse,
 } from '../types/recipe';
 import type {
+  CafesResponse,
   OwnersCafesResponse,
   StaffSummaryResponse,
   StaffCreateRequest,
@@ -111,8 +115,14 @@ export const deleteRecipe = async (recipeId: string): Promise<void> => {
 };
 
 // 점주 카페 목록 조회
-export const getOwnersCafes = async (): Promise<OwnersCafesResponse> => {
-  const { data } = await apiClient.get<OwnersCafesResponse>('/members/owner/cafes');
+export const getOwnersCafes = async (): Promise<CafesResponse> => {
+  const { data } = await apiClient.get<CafesResponse>('/members/owner/cafes');
+  return data;
+};
+
+// 스태프 카페 목록 조회
+export const getStaffCafes = async (): Promise<CafesResponse> => {
+  const { data } = await apiClient.get<CafesResponse>('/members/staff/cafes');
   return data;
 };
 
@@ -173,5 +183,23 @@ export const createOwner = async (request: CreateOwnerRequest): Promise<void> =>
 // 점주 정보 수정
 export const updateMember = async (memberId: string, request: MemberUpdateRequest): Promise<void> => {
   await apiClient.put(`/members/admin/member/${memberId}`, request);
+};
+
+// 즐겨찾기 추가
+export const addFavorite = async (request: RecipeFavoriteAddRequest): Promise<void> => {
+  await apiClient.post('/recipe/recipe-favorites', request);
+};
+
+// 즐겨찾기 삭제
+export const removeFavorite = async (request: RecipeFavoriteRemoveRequest): Promise<void> => {
+  await apiClient.delete('/recipe/recipe-favorites', { data: request });
+};
+
+// 즐겨찾기 목록 조회
+export const getFavorites = async (cafeId: string): Promise<RecipeFavoriteListResponse> => {
+  const { data } = await apiClient.get<RecipeFavoriteListResponse>('/recipe/recipe-favorites', {
+    params: { cafeId },
+  });
+  return data;
 };
 

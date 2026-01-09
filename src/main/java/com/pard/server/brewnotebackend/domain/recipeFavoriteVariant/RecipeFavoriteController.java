@@ -18,7 +18,7 @@ public class RecipeFavoriteController {
 
     private final RecipeFavoriteService removeFavoriteService;
 
-    /**
+    /*
      * 즐겨찾기 추가
      */
     @PostMapping

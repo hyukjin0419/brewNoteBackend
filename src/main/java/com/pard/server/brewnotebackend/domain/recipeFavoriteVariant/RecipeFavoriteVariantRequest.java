@@ -14,8 +14,8 @@ public class RecipeFavoriteVariantRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Add {
-        private Long cafeMemberId;
-        private UUID recipeId;
+        private String cafeId;
+        private String recipeId;
         private Long recipeVariantId;
     }
 
@@ -24,7 +24,7 @@ public class RecipeFavoriteVariantRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Remove {
-        private Long cafeMemberId;
+        private String cafeId;
         private Long recipeVariantId;
     }
 }
