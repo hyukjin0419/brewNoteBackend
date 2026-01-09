@@ -20,6 +20,7 @@ export interface RecipeSearchResponse {
   category: RecipeCategory;
   isSignature: boolean;
   isNew: boolean;
+  isFavorite?: boolean; // 즐겨찾기 상태 (프론트엔드에서 관리)
 }
 
 // 레시피 상세 응답

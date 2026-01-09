@@ -21,10 +21,28 @@ function RecipeDetail() {
   const [error, setError] = useState<string | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const [isLoadingFavorite, setIsLoadingFavorite] = useState(false);
-  const isTogglingRef = useRef(false); // 토글 중인지 추적
-  const lastToggleTimeRef = useRef<number>(0); // 마지막 토글 시간 추적
+  const fetchSequenceRef = useRef(0); // fetch sequence로 최신 응답만 반영
+  const isTogglingRef = useRef(false); // 토글 중일 때 useEffect가 상태를 덮어쓰지 않도록
+
+  // 컴포넌트 mount/unmount 확인
+  useEffect(() => {
+    console.log('🔥 RecipeDetail MOUNT', { recipeId, timestamp: new Date().toISOString() });
+    return () => {
+      console.log('💀 RecipeDetail UNMOUNT', { recipeId, timestamp: new Date().toISOString() });
+    };
+  }, [recipeId]);
+  
+  // recipe 변경 추적
+  useEffect(() => {
+    console.log('[RECIPE CHANGED]', recipe?.recipeId, recipe?.title);
+  }, [recipe]);
+  
+  // isFavorite 변경 추적
+  useEffect(() => {
+    console.log('[isFavorite CHANGED]', isFavorite, { recipeId: recipe?.recipeId, variantId: selectedVariant?.variantId });
+  }, [isFavorite, recipe?.recipeId, selectedVariant?.variantId]);
 
   // 수정 모드 폼 상태
   const [editForm, setEditForm] = useState<RecipeUpdateRequest>({
@@ -97,6 +115,23 @@ function RecipeDetail() {
         if (defaultVariantInForm) {
           setCurrentVariant({ ...defaultVariantInForm });
         }
+
+        // 초기 로드 시 즐겨찾기 상태 확인 (점주/스태프인 경우)
+        if (isOwnerOrStaff() && defaultVariant) {
+          const selectedCafeId = getSelectedCafeId();
+          if (selectedCafeId) {
+            try {
+              const favoritesData = await getFavorites(selectedCafeId);
+              const isFav = favoritesData.favorites.some(
+                fav => String(fav.recipeId) === String(recipeData.recipeId) && 
+                       Number(fav.variant.variantId) === Number(defaultVariant.variantId)
+              );
+              setIsFavorite(Boolean(isFav));
+            } catch (err) {
+              console.error('초기 즐겨찾기 상태 조회 오류:', err);
+            }
+          }
+        }
       } catch (err) {
         console.error('레시피 조회 오류:', err);
         setError('레시피를 불러올 수 없습니다.');
@@ -108,15 +143,12 @@ function RecipeDetail() {
     fetchData();
   }, [recipeId]);
 
-  // 즐겨찾기 상태 확인 (점주/스태프인 경우)
+  // variant 변경 시에만 즐겨찾기 상태 확인 (토글 중이 아닐 때만)
+  // recipe 변경 시에는 실행하지 않음 (토글 API 응답이 진실의 소스)
   useEffect(() => {
-    // 토글 중이거나 최근 3초 이내에 토글했으면 상태 조회 스킵 (토글 핸들러에서 이미 상태 업데이트함)
-    const now = Date.now();
-    if (isTogglingRef.current || (now - lastToggleTimeRef.current < 3000)) {
-      console.log('즐겨찾기 상태 조회 스킵 (토글 직후)', {
-        isToggling: isTogglingRef.current,
-        timeSinceToggle: now - lastToggleTimeRef.current
-      });
+    // 토글 중이면 상태 조회 스킵
+    if (isTogglingRef.current) {
+      console.log('⏸️ 즐겨찾기 상태 조회 스킵 (토글 중)');
       return;
     }
 
@@ -126,37 +158,61 @@ function RecipeDetail() {
       const selectedCafeId = getSelectedCafeId();
       if (!selectedCafeId || !recipe || !selectedVariant) return;
 
+      // 다시 한번 체크 (비동기 함수 내부에서도 체크)
+      if (isTogglingRef.current) {
+        console.log('⏸️ 즐겨찾기 상태 조회 스킵 (비동기 함수 내부 체크)');
+        return;
+      }
+
       try {
         // 즐겨찾기 목록 조회해서 현재 variant가 즐겨찾기되어 있는지 확인
         const favoritesData = await getFavorites(selectedCafeId);
-        const isFav = favoritesData.favorites.some(
-          fav => fav.recipeId === recipe.recipeId && 
-                 fav.variant.variantId === selectedVariant.variantId
-        );
-        console.log('즐겨찾기 상태 조회 결과:', isFav);
-        // 토글 직후가 아니면 상태 업데이트
-        const checkTime = Date.now();
-        if (!isTogglingRef.current && (checkTime - lastToggleTimeRef.current >= 3000)) {
-          setIsFavorite(isFav);
+        
+        // 최종 체크: 토글 중이 아니면 상태 업데이트
+        if (!isTogglingRef.current) {
+          const isFav = favoritesData.favorites.some(
+            fav => String(fav.recipeId) === String(recipe.recipeId) && 
+                   Number(fav.variant.variantId) === Number(selectedVariant.variantId)
+          );
+          const favoriteValue = Boolean(isFav);
+          console.log('✅ 즐겨찾기 상태 업데이트 (variant 변경):', favoriteValue);
+          setIsFavorite(favoriteValue);
         }
       } catch (err) {
         console.error('즐겨찾기 상태 조회 오류:', err);
       }
     };
 
+    // variant 변경 시에만 실행 (recipe 변경 시에는 실행하지 않음)
     if (recipe && selectedVariant) {
       fetchFavoriteStatus();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recipe, selectedVariant]); // isFavorite를 의존성에서 제거하여 무한 루프 방지
+  }, [selectedVariant?.variantId]); // variantId가 변경될 때만 실행 (recipeId는 제외)
 
-  const handleVariantClick = (variant: VariantResponse) => {
+  const handleVariantClick = async (variant: VariantResponse) => {
     setSelectedVariant(variant);
-    // variant 변경 시 즐겨찾기 상태도 다시 확인
-    setIsFavorite(false); // 일단 false로 설정하고 useEffect에서 다시 확인
+    
+    // variant 변경 시 즐겨찾기 상태 확인 (토글 중이 아닐 때만)
+    if (!isTogglingRef.current && isOwnerOrStaff() && recipe) {
+      const selectedCafeId = getSelectedCafeId();
+      if (selectedCafeId) {
+        try {
+          const favoritesData = await getFavorites(selectedCafeId);
+          const isFav = favoritesData.favorites.some(
+            fav => String(fav.recipeId) === String(recipe.recipeId) && 
+                   Number(fav.variant.variantId) === Number(variant.variantId)
+          );
+          setIsFavorite(Boolean(isFav));
+        } catch (err) {
+          console.error('variant 변경 시 즐겨찾기 상태 조회 오류:', err);
+        }
+      }
+    }
   };
 
-  // 즐겨찾기 토글 핸들러
+  // 즐겨찾기 토글 핸들러 (낙관적 업데이트 → 서버 응답으로 확정)
+  // 토글 API 응답이 즐겨찾기 상태의 단일 진실의 소스
   const handleFavoriteToggle = async () => {
     if (!isOwnerOrStaff()) {
       alert('즐겨찾기는 점주/스태프만 사용할 수 있습니다.');
@@ -169,38 +225,67 @@ function RecipeDetail() {
       return;
     }
 
+    // 이전 상태 저장 (롤백용) - Boolean으로 강제 변환하여 undefined 방지
+    const prevFavorite = Boolean(isFavorite);
+    
+    // 토글 시작: useEffect가 상태를 덮어쓰지 않도록
+    isTogglingRef.current = true;
+    
+    // 낙관적 업데이트: UI를 먼저 업데이트
+    // Boolean으로 강제 변환하여 undefined 방지
+    const optimisticValue = !prevFavorite;
+    console.log('🟡 낙관적 업데이트:', prevFavorite, '->', optimisticValue);
+    setIsFavorite(Boolean(optimisticValue));
+
     try {
       setIsLoadingFavorite(true);
-      isTogglingRef.current = true; // 토글 시작
-      lastToggleTimeRef.current = Date.now(); // 토글 시간 기록
       
+      // fetch sequence 증가하여 이후 도착하는 이전 getFavorites 응답 무시
+      fetchSequenceRef.current++;
+      
+      // 서버에 토글 요청
       const response = await toggleFavorite({
         cafeId: selectedCafeId,
         recipeId: recipe.recipeId,
         recipeVariantId: selectedVariant.variantId,
       });
       
-      console.log('즐겨찾기 토글 응답:', response);
-      console.log('즐겨찾기 상태 업데이트 전:', isFavorite);
-      console.log('즐겨찾기 상태 업데이트 후:', response.isFavorite);
+      // 서버 응답 확인 및 디버깅
+      console.log('🔵 TOGGLE SUCCESS - 전체 응답:', JSON.stringify(response, null, 2));
+      console.log('🔵 TOGGLE SUCCESS - response.isFavorite:', response.isFavorite);
+      console.log('🔵 TOGGLE SUCCESS - response.favorite:', (response as any).favorite);
+      console.log('🔵 TOGGLE SUCCESS - response keys:', Object.keys(response || {}));
       
-      // 상태를 즉시 업데이트하고, 함수형 업데이트 사용하여 확실하게 반영
-      setIsFavorite((prev) => {
-        const newValue = response.isFavorite;
-        console.log('setIsFavorite 호출:', prev, '->', newValue);
-        return newValue;
-      });
+      // 응답에서 isFavorite 또는 favorite 필드 확인
+      // Jackson이 boolean 필드를 직렬화할 때 isFavorite -> favorite로 변환할 수 있음
+      let favoriteValue: boolean;
+      if (response.isFavorite !== undefined) {
+        favoriteValue = Boolean(response.isFavorite);
+      } else if ((response as any).favorite !== undefined) {
+        favoriteValue = Boolean((response as any).favorite);
+      } else {
+        // 응답이 없으면 낙관적 값 유지
+        console.warn('⚠️ 서버 응답에 isFavorite/favorite 필드가 없음. 낙관적 값 유지:', optimisticValue);
+        favoriteValue = optimisticValue;
+      }
       
-      // 토글 완료 후 긴 시간 동안 useEffect가 실행되지 않도록
-      // 시간을 갱신하여 useEffect의 시간 체크가 제대로 작동하도록
-      lastToggleTimeRef.current = Date.now();
+      console.log('🔵 TOGGLE SUCCESS - 최종 favoriteValue:', favoriteValue);
+      setIsFavorite(favoriteValue);
+      
+      // 토글 완료: variant 변경 시에만 useEffect가 실행되도록
+      // recipe 변경 시에는 useEffect가 실행되지 않으므로 플래그 해제 불필요
+      // 하지만 안전을 위해 약간의 지연 후 해제
       setTimeout(() => {
         isTogglingRef.current = false;
-        console.log('토글 플래그 해제 (5초 후)');
-      }, 5000); // 5초로 늘려서 useEffect가 확실히 스킵되도록
+        console.log('✅ 토글 플래그 해제 (1초 후)');
+      }, 1000);
+
     } catch (err: any) {
-      console.error('즐겨찾기 오류:', err);
-      isTogglingRef.current = false; // 에러 발생 시 플래그 해제
+      // 에러 발생 시 낙관적 업데이트 롤백
+      setIsFavorite(prevFavorite);
+      isTogglingRef.current = false;
+      
+      console.error('❌ 즐겨찾기 오류:', err);
       const errorMessage = err?.response?.data?.message ||
                           err?.response?.data?.error ||
                           err?.message ||

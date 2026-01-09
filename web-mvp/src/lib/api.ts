@@ -186,7 +186,23 @@ export const updateMember = async (memberId: string, request: MemberUpdateReques
 
 // 즐겨찾기 토글
 export const toggleFavorite = async (request: RecipeFavoriteToggleRequest): Promise<ToggleResponse> => {
-  const { data } = await apiClient.post<ToggleResponse>('/recipe/recipe-favorites/toggle', request);
+  const response = await apiClient.post<ToggleResponse>('/recipe/recipe-favorites/toggle', request);
+  console.log('🔍 toggleFavorite API 응답 전체:', response);
+  console.log('🔍 toggleFavorite response.data:', response.data);
+  console.log('🔍 toggleFavorite response.data 타입:', typeof response.data);
+  console.log('🔍 toggleFavorite response.data.isFavorite:', response.data?.isFavorite);
+  console.log('🔍 toggleFavorite response.data.favorite:', (response.data as any)?.favorite);
+  console.log('🔍 toggleFavorite response.data keys:', response.data ? Object.keys(response.data) : 'null/undefined');
+  
+  // Jackson이 isFavorite를 favorite로 직렬화할 수 있으므로 둘 다 확인
+  const data = response.data;
+  if (data && typeof data === 'object') {
+    // favorite 필드가 있으면 isFavorite로 매핑
+    if ('favorite' in data && !('isFavorite' in data)) {
+      return { isFavorite: Boolean((data as any).favorite) } as ToggleResponse;
+    }
+  }
+  
   return data;
 };
 
