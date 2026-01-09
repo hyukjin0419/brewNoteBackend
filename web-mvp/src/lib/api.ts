@@ -11,7 +11,6 @@ import type {
 } from '../types/recipe';
 import type {
   CafesResponse,
-  OwnersCafesResponse,
   StaffSummaryResponse,
   StaffCreateRequest,
   StaffDetailResponse,

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { login, getOwnersCafes, getStaffCafes } from '../lib/api';
+import type { CafesResponse } from '../types/member';
 import { setToken, setRole, setCafes, setSelectedCafeId } from '../utils/auth';
 import './Login.css';
 
@@ -33,49 +34,40 @@ function Login() {
       }
       
       // 점주/스태프인 경우 카페 목록 조회
-      // 먼저 점주 API 호출, 실패하면 스태프 API 호출
+      // 먼저 점주 API 호출, null이거나 빈 배열이면 스태프 API 호출
       if (response.role === 'USER' || response.role === 'STAFF') {
+        let cafesData: CafesResponse | null = null;
+        
         try {
           // 먼저 점주 카페 목록 조회 시도
-          const ownersCafesData = await getOwnersCafes();
-          if (ownersCafesData && ownersCafesData.cafes && Array.isArray(ownersCafesData.cafes) && ownersCafesData.cafes.length > 0) {
-            // 점주인 경우
-            setCafes(JSON.stringify(ownersCafesData.cafes));
-            if (ownersCafesData.cafes.length > 0) {
-              setSelectedCafeId(ownersCafesData.cafes[0].cafeId);
-            }
-          } else {
-            // 점주 API가 null이거나 빈 배열이면 스태프 API 호출
+          cafesData = await getOwnersCafes();
+          
+          // 점주 API가 null이거나 빈 배열이면 스태프 API 호출
+          if (!cafesData || !cafesData.cafes || !Array.isArray(cafesData.cafes) || cafesData.cafes.length === 0) {
             try {
-              const staffCafesData = await getStaffCafes();
-              if (staffCafesData && staffCafesData.cafes && Array.isArray(staffCafesData.cafes)) {
-                // 스태프인 경우
-                setCafes(JSON.stringify(staffCafesData.cafes));
-                if (staffCafesData.cafes.length > 0) {
-                  setSelectedCafeId(staffCafesData.cafes[0].cafeId);
-                }
-              }
+              cafesData = await getStaffCafes();
             } catch (staffError: any) {
               console.error('스태프 카페 목록 조회 오류:', staffError);
               // 카페 목록 조회 실패해도 로그인은 진행
+              cafesData = null;
             }
           }
         } catch (ownerError: any) {
           // 점주 API 실패 시 스태프 API 호출
           console.error('점주 카페 목록 조회 오류:', ownerError);
           try {
-            const staffCafesData = await getStaffCafes();
-            if (staffCafesData && staffCafesData.cafes && Array.isArray(staffCafesData.cafes)) {
-              // 스태프인 경우
-              setCafes(JSON.stringify(staffCafesData.cafes));
-              if (staffCafesData.cafes.length > 0) {
-                setSelectedCafeId(staffCafesData.cafes[0].cafeId);
-              }
-            }
+            cafesData = await getStaffCafes();
           } catch (staffError: any) {
             console.error('스태프 카페 목록 조회 오류:', staffError);
             // 카페 목록 조회 실패해도 로그인은 진행
+            cafesData = null;
           }
+        }
+        
+        // 카페 목록이 있으면 저장
+        if (cafesData && cafesData.cafes && Array.isArray(cafesData.cafes) && cafesData.cafes.length > 0) {
+          setCafes(JSON.stringify(cafesData.cafes));
+          setSelectedCafeId(cafesData.cafes[0].cafeId);
         }
       }
       // 페이지 새로고침하여 App의 인증 상태 업데이트
