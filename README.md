@@ -101,4 +101,5 @@ Blendery는 카페 매장에서 메뉴 레시피를 찾는 과정에서 발생�
      - 실제 매장 운영 방식에 따라, Staff의 권한이나 역할 정책은 더 세분화될 가능성이 있다고 판단하고 있습니다.
      - 이 부분은 점주님들과의 추가적인 논의를 통해 명확한 규칙과 정책이 정리된 이후 반영할 예정입니다.
 
-=> 1,2번은 이미 이전 프로젝트에서 구현한 경험이 있습니다. 관련 구현은 [해당 저장소](https://github.com/hyukjin0419/studyGroupBackEnd/blob/main/README.md)에서 확인하실 수 있습니다.
+※ 1번과 2번 항목은 이전 프로젝트에서 이미 구현한 경험이 있습니다. 관련 구현은 [해당 저장소](https://github.com/hyukjin0419/studyGroupBackEnd/blob/main/README.md)에서 확인하실 수 있습니다.
+
