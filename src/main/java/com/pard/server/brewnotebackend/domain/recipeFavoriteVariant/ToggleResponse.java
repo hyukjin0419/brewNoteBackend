@@ -9,9 +9,12 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+public class ToggleResponse {
+    private boolean isFavorite;
 
-public class RecipeFavoriteVariantRequest {
-    private String cafeId;
-    private String recipeId;
-    private Long recipeVariantId;
+    public static ToggleResponse from(boolean isFavorite){
+        return ToggleResponse.builder()
+                .isFavorite(isFavorite)
+                .build();
+    }
 }

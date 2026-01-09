@@ -84,15 +84,14 @@ export interface RecipeUpdateRequest {
 }
 
 // 즐겨찾기 관련 타입
-export interface RecipeFavoriteAddRequest {
+export interface RecipeFavoriteToggleRequest {
   cafeId: string;
   recipeId: string;
   recipeVariantId: number;
 }
 
-export interface RecipeFavoriteRemoveRequest {
-  cafeId: string;
-  recipeVariantId: number;
+export interface ToggleResponse {
+  isFavorite: boolean;
 }
 
 export interface RecipeFavoriteListResponse {

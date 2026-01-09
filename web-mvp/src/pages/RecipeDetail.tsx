@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getRecipeDetail, updateRecipe, getRecipeFormData, deleteRecipe, addFavorite, removeFavorite, getFavorites } from '../lib/api';
+import { getRecipeDetail, updateRecipe, getRecipeFormData, deleteRecipe, toggleFavorite, getFavorites } from '../lib/api';
 import type { 
   RecipeDetailResponse, 
   VariantResponse, 
@@ -23,6 +23,8 @@ function RecipeDetail() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isLoadingFavorite, setIsLoadingFavorite] = useState(false);
+  const isTogglingRef = useRef(false); // 토글 중인지 추적
+  const lastToggleTimeRef = useRef<number>(0); // 마지막 토글 시간 추적
 
   // 수정 모드 폼 상태
   const [editForm, setEditForm] = useState<RecipeUpdateRequest>({
@@ -108,6 +110,16 @@ function RecipeDetail() {
 
   // 즐겨찾기 상태 확인 (점주/스태프인 경우)
   useEffect(() => {
+    // 토글 중이거나 최근 3초 이내에 토글했으면 상태 조회 스킵 (토글 핸들러에서 이미 상태 업데이트함)
+    const now = Date.now();
+    if (isTogglingRef.current || (now - lastToggleTimeRef.current < 3000)) {
+      console.log('즐겨찾기 상태 조회 스킵 (토글 직후)', {
+        isToggling: isTogglingRef.current,
+        timeSinceToggle: now - lastToggleTimeRef.current
+      });
+      return;
+    }
+
     const fetchFavoriteStatus = async () => {
       if (!isOwnerOrStaff()) return; // 점주/스태프만 즐겨찾기 가능
       
@@ -121,7 +133,12 @@ function RecipeDetail() {
           fav => fav.recipeId === recipe.recipeId && 
                  fav.variant.variantId === selectedVariant.variantId
         );
-        setIsFavorite(isFav);
+        console.log('즐겨찾기 상태 조회 결과:', isFav);
+        // 토글 직후가 아니면 상태 업데이트
+        const checkTime = Date.now();
+        if (!isTogglingRef.current && (checkTime - lastToggleTimeRef.current >= 3000)) {
+          setIsFavorite(isFav);
+        }
       } catch (err) {
         console.error('즐겨찾기 상태 조회 오류:', err);
       }
@@ -130,7 +147,8 @@ function RecipeDetail() {
     if (recipe && selectedVariant) {
       fetchFavoriteStatus();
     }
-  }, [recipe, selectedVariant]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recipe, selectedVariant]); // isFavorite를 의존성에서 제거하여 무한 루프 방지
 
   const handleVariantClick = (variant: VariantResponse) => {
     setSelectedVariant(variant);
@@ -138,7 +156,7 @@ function RecipeDetail() {
     setIsFavorite(false); // 일단 false로 설정하고 useEffect에서 다시 확인
   };
 
-  // 즐겨찾기 추가/삭제 핸들러
+  // 즐겨찾기 토글 핸들러
   const handleFavoriteToggle = async () => {
     if (!isOwnerOrStaff()) {
       alert('즐겨찾기는 점주/스태프만 사용할 수 있습니다.');
@@ -153,25 +171,36 @@ function RecipeDetail() {
 
     try {
       setIsLoadingFavorite(true);
+      isTogglingRef.current = true; // 토글 시작
+      lastToggleTimeRef.current = Date.now(); // 토글 시간 기록
       
-      if (isFavorite) {
-        // 즐겨찾기 삭제
-        await removeFavorite({
-          cafeId: selectedCafeId,
-          recipeVariantId: selectedVariant.variantId,
-        });
-        setIsFavorite(false);
-      } else {
-        // 즐겨찾기 추가
-        await addFavorite({
-          cafeId: selectedCafeId,
-          recipeId: recipe.recipeId,
-          recipeVariantId: selectedVariant.variantId,
-        });
-        setIsFavorite(true);
-      }
+      const response = await toggleFavorite({
+        cafeId: selectedCafeId,
+        recipeId: recipe.recipeId,
+        recipeVariantId: selectedVariant.variantId,
+      });
+      
+      console.log('즐겨찾기 토글 응답:', response);
+      console.log('즐겨찾기 상태 업데이트 전:', isFavorite);
+      console.log('즐겨찾기 상태 업데이트 후:', response.isFavorite);
+      
+      // 상태를 즉시 업데이트하고, 함수형 업데이트 사용하여 확실하게 반영
+      setIsFavorite((prev) => {
+        const newValue = response.isFavorite;
+        console.log('setIsFavorite 호출:', prev, '->', newValue);
+        return newValue;
+      });
+      
+      // 토글 완료 후 긴 시간 동안 useEffect가 실행되지 않도록
+      // 시간을 갱신하여 useEffect의 시간 체크가 제대로 작동하도록
+      lastToggleTimeRef.current = Date.now();
+      setTimeout(() => {
+        isTogglingRef.current = false;
+        console.log('토글 플래그 해제 (5초 후)');
+      }, 5000); // 5초로 늘려서 useEffect가 확실히 스킵되도록
     } catch (err: any) {
       console.error('즐겨찾기 오류:', err);
+      isTogglingRef.current = false; // 에러 발생 시 플래그 해제
       const errorMessage = err?.response?.data?.message ||
                           err?.response?.data?.error ||
                           err?.message ||
