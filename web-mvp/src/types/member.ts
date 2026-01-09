@@ -68,7 +68,6 @@ export interface CafeSummary {
 }
 
 // 호환성을 위한 별칭 (기존 코드에서 사용 중)
-export type OwnersCafesResponse = CafesResponse;
 export type OwnedCafeSummary = CafeSummary;
 
 // 스태프 관련
