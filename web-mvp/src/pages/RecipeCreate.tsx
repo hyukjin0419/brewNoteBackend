@@ -30,6 +30,7 @@ function RecipeCreate() {
     franchiseId: '',
     title: '',
     category: '',
+    isNew: false,
     hotImgUrl: '',
     iceImgUrl: '',
     alias: [],
@@ -70,7 +71,7 @@ function RecipeCreate() {
     fetchFormData();
   }, []);
 
-  const handleInputChange = (field: keyof RecipeCreateRequest, value: string) => {
+  const handleInputChange = (field: keyof RecipeCreateRequest, value: string | boolean) => {
     setForm((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -377,14 +378,13 @@ function RecipeCreate() {
         franchiseId: form.franchiseId,
         title: form.title,
         category: form.category,
+        isNew: Boolean(form.isNew), // 신메뉴 여부 포함 (명시적으로 boolean 변환)
         hotImgUrl: form.hotImgUrl?.trim() || undefined,
         iceImgUrl: form.iceImgUrl?.trim() || undefined,
         alias: filteredAliases,
         variants: form.variants,
       };
 
-      console.log('전송할 데이터:', JSON.stringify(requestData, null, 2));
-      
       await createRecipe(requestData);
       alert('레시피가 성공적으로 등록되었습니다.');
       navigate('/');
@@ -464,6 +464,17 @@ function RecipeCreate() {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="form-group">
+            <label>
+              <input
+                type="checkbox"
+                checked={Boolean(form.isNew)}
+                onChange={(e) => handleInputChange('isNew', e.target.checked)}
+              />
+              <span style={{ marginLeft: '8px' }}>신메뉴</span>
+            </label>
           </div>
 
           <div className="form-group">

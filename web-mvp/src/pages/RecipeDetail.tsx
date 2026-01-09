@@ -26,28 +26,12 @@ function RecipeDetail() {
   const fetchSequenceRef = useRef(0); // fetch sequence로 최신 응답만 반영
   const isTogglingRef = useRef(false); // 토글 중일 때 useEffect가 상태를 덮어쓰지 않도록
 
-  // 컴포넌트 mount/unmount 확인
-  useEffect(() => {
-    console.log('🔥 RecipeDetail MOUNT', { recipeId, timestamp: new Date().toISOString() });
-    return () => {
-      console.log('💀 RecipeDetail UNMOUNT', { recipeId, timestamp: new Date().toISOString() });
-    };
-  }, [recipeId]);
-  
-  // recipe 변경 추적
-  useEffect(() => {
-    console.log('[RECIPE CHANGED]', recipe?.recipeId, recipe?.title);
-  }, [recipe]);
-  
-  // isFavorite 변경 추적
-  useEffect(() => {
-    console.log('[isFavorite CHANGED]', isFavorite, { recipeId: recipe?.recipeId, variantId: selectedVariant?.variantId });
-  }, [isFavorite, recipe?.recipeId, selectedVariant?.variantId]);
 
   // 수정 모드 폼 상태
   const [editForm, setEditForm] = useState<RecipeUpdateRequest>({
     title: '',
     category: '',
+    isNew: false, // 초기값 false로 설정하여 항상 boolean 값 유지
     hotThumbnailUrl: '',
     iceThumbnailUrl: '',
     alias: [],
@@ -94,9 +78,15 @@ function RecipeDetail() {
           steps: v.steps || [],
         }));
         
+        // Jackson이 isNew를 new로 직렬화할 수 있으므로 둘 다 확인
+        const isNewValue = (recipeData as any).new !== undefined 
+          ? Boolean((recipeData as any).new) 
+          : Boolean(recipeData.isNew);
+        
         setEditForm({
           title: recipeData.title,
           category: recipeData.category,
+          isNew: isNewValue, // 명시적으로 boolean 변환
           hotThumbnailUrl: recipeData.hotThumbnailUrl || '',
           iceThumbnailUrl: recipeData.iceThumbnailUrl || '',
           alias: recipeData.alias || [],
@@ -128,7 +118,7 @@ function RecipeDetail() {
               );
               setIsFavorite(Boolean(isFav));
             } catch (err) {
-              console.error('초기 즐겨찾기 상태 조회 오류:', err);
+              // 초기 즐겨찾기 상태 조회 실패 시 무시
             }
           }
         }
@@ -148,7 +138,6 @@ function RecipeDetail() {
   useEffect(() => {
     // 토글 중이면 상태 조회 스킵
     if (isTogglingRef.current) {
-      console.log('⏸️ 즐겨찾기 상태 조회 스킵 (토글 중)');
       return;
     }
 
@@ -160,7 +149,6 @@ function RecipeDetail() {
 
       // 다시 한번 체크 (비동기 함수 내부에서도 체크)
       if (isTogglingRef.current) {
-        console.log('⏸️ 즐겨찾기 상태 조회 스킵 (비동기 함수 내부 체크)');
         return;
       }
 
@@ -175,11 +163,10 @@ function RecipeDetail() {
                    Number(fav.variant.variantId) === Number(selectedVariant.variantId)
           );
           const favoriteValue = Boolean(isFav);
-          console.log('✅ 즐겨찾기 상태 업데이트 (variant 변경):', favoriteValue);
           setIsFavorite(favoriteValue);
         }
       } catch (err) {
-        console.error('즐겨찾기 상태 조회 오류:', err);
+        // 즐겨찾기 상태 조회 실패 시 무시
       }
     };
 
@@ -205,7 +192,7 @@ function RecipeDetail() {
           );
           setIsFavorite(Boolean(isFav));
         } catch (err) {
-          console.error('variant 변경 시 즐겨찾기 상태 조회 오류:', err);
+          // variant 변경 시 즐겨찾기 상태 조회 실패 시 무시
         }
       }
     }
@@ -234,7 +221,6 @@ function RecipeDetail() {
     // 낙관적 업데이트: UI를 먼저 업데이트
     // Boolean으로 강제 변환하여 undefined 방지
     const optimisticValue = !prevFavorite;
-    console.log('🟡 낙관적 업데이트:', prevFavorite, '->', optimisticValue);
     setIsFavorite(Boolean(optimisticValue));
 
     try {
@@ -250,12 +236,6 @@ function RecipeDetail() {
         recipeVariantId: selectedVariant.variantId,
       });
       
-      // 서버 응답 확인 및 디버깅
-      console.log('🔵 TOGGLE SUCCESS - 전체 응답:', JSON.stringify(response, null, 2));
-      console.log('🔵 TOGGLE SUCCESS - response.isFavorite:', response.isFavorite);
-      console.log('🔵 TOGGLE SUCCESS - response.favorite:', (response as any).favorite);
-      console.log('🔵 TOGGLE SUCCESS - response keys:', Object.keys(response || {}));
-      
       // 응답에서 isFavorite 또는 favorite 필드 확인
       // Jackson이 boolean 필드를 직렬화할 때 isFavorite -> favorite로 변환할 수 있음
       let favoriteValue: boolean;
@@ -265,11 +245,9 @@ function RecipeDetail() {
         favoriteValue = Boolean((response as any).favorite);
       } else {
         // 응답이 없으면 낙관적 값 유지
-        console.warn('⚠️ 서버 응답에 isFavorite/favorite 필드가 없음. 낙관적 값 유지:', optimisticValue);
         favoriteValue = optimisticValue;
       }
       
-      console.log('🔵 TOGGLE SUCCESS - 최종 favoriteValue:', favoriteValue);
       setIsFavorite(favoriteValue);
       
       // 토글 완료: variant 변경 시에만 useEffect가 실행되도록
@@ -277,7 +255,6 @@ function RecipeDetail() {
       // 하지만 안전을 위해 약간의 지연 후 해제
       setTimeout(() => {
         isTogglingRef.current = false;
-        console.log('✅ 토글 플래그 해제 (1초 후)');
       }, 1000);
 
     } catch (err: any) {
@@ -285,7 +262,6 @@ function RecipeDetail() {
       setIsFavorite(prevFavorite);
       isTogglingRef.current = false;
       
-      console.error('❌ 즐겨찾기 오류:', err);
       const errorMessage = err?.response?.data?.message ||
                           err?.response?.data?.error ||
                           err?.message ||
@@ -320,9 +296,15 @@ function RecipeDetail() {
   // 수정 취소
   const handleCancelEdit = () => {
     if (recipe) {
+      // Jackson이 isNew를 new로 직렬화할 수 있으므로 둘 다 확인
+      const isNewValue = (recipe as any).new !== undefined 
+        ? Boolean((recipe as any).new) 
+        : Boolean(recipe.isNew);
+      
       setEditForm({
         title: recipe.title,
         category: recipe.category,
+        isNew: isNewValue, // 명시적으로 boolean 변환
         hotThumbnailUrl: recipe.hotThumbnailUrl || '',
         iceThumbnailUrl: recipe.iceThumbnailUrl || '',
         alias: recipe.alias || [],
@@ -497,9 +479,13 @@ function RecipeDetail() {
       
       const filteredAliases = confirmedAliases.filter((alias) => alias.trim() !== '');
       
+      // isNew 값 확인 및 디버깅
+      const isNewValue = editForm.isNew !== undefined ? Boolean(editForm.isNew) : false;
+      
       const requestData: RecipeUpdateRequest = {
         title: editForm.title,
         category: editForm.category,
+        isNew: isNewValue, // 신메뉴 여부 포함 (항상 boolean 값으로 전송)
         hotThumbnailUrl: editForm.hotThumbnailUrl?.trim() || undefined,
         iceThumbnailUrl: editForm.iceThumbnailUrl?.trim() || undefined,
         alias: filteredAliases,
@@ -598,6 +584,7 @@ function RecipeDetail() {
               <div className="recipe-title-section">
                 <h1>{recipe.title}</h1>
                 <span className="category-badge">{recipe.category}</span>
+                {((recipe as any).new !== undefined ? Boolean((recipe as any).new) : Boolean(recipe.isNew)) && <span className="badge new">신메뉴</span>}
               </div>
               {isOwnerOrStaff() && getSelectedCafeId() && (
                 <button
@@ -697,6 +684,17 @@ function RecipeDetail() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            <div className="form-group">
+              <label>
+                <input
+                  type="checkbox"
+                  checked={Boolean(editForm.isNew)}
+                  onChange={(e) => setEditForm(prev => ({ ...prev, isNew: e.target.checked }))}
+                />
+                <span style={{ marginLeft: '8px' }}>신메뉴</span>
+              </label>
             </div>
 
             <div className="form-group">

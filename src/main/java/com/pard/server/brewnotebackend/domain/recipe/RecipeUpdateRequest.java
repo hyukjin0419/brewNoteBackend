@@ -14,6 +14,7 @@ import java.util.List;
 public class RecipeUpdateRequest {
     private String title;
     private String category;
+    private Boolean isNew;
     private String hotThumbnailUrl;
     private String iceThumbnailUrl;
     private List<String> alias;

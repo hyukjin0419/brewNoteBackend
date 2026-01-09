@@ -16,6 +16,7 @@ public class RecipeDetailResponse {
     private UUID recipeId;
     private String title;
     private String category;
+    private boolean isNew;
     private String hotThumbnailUrl;
     private String iceThumbnailUrl;
     private List<String> alias;
@@ -31,6 +32,7 @@ public class RecipeDetailResponse {
                 .recipeId(recipe.getId())
                 .title(recipe.getTitle())
                 .category(recipe.getCategory().name())
+                .isNew(recipe.isNew())
                 .hotThumbnailUrl(recipe.getHotThumbnailUrl())
                 .iceThumbnailUrl(recipe.getIceThumbnailUrl())
                 .alias(alias)
@@ -46,6 +48,7 @@ public class RecipeDetailResponse {
                 .recipeId(recipe.getId())
                 .title(recipe.getTitle())
                 .category(recipe.getCategory().name())
+                .isNew(recipe.isNew())
                 .hotThumbnailUrl(recipe.getHotThumbnailUrl())
                 .iceThumbnailUrl(recipe.getIceThumbnailUrl())
                 .variants(variants)
